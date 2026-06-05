@@ -2,21 +2,31 @@ import React, { useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import { Menu, Plus, BellIcon, Cross, HomeIcon, UsersIcon, TrainTrackIcon, ShoppingBag } from 'lucide-react'
 import Logo from '../../assets/Fitness_Beast_Logo.png'
+import { sidebarConfig } from '../../assets/hardcoded_content.js/LayoutNavbarConfig.js'
+import { useLocation } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 const Layout = () => {
     const [isSideBarOpen, setIsSideBarOpen] = useState(false)
-    const [selectedButton, setSelectedButton] = useState(0)
+    // const [selectedButton, setSelectedButton] = useState(0)  //we have used it in ordet to change the background color or to show the selected button
     const [profileIconPopUp, setProfileIconPopUp] = useState(false)
 
-    const SideBarButtons = [
-        {name:"Dashboard",icon:HomeIcon},
-        {name:"Members",icon:UsersIcon},
-        {name:"Membership Plans",icon:TrainTrackIcon},
-        {name:"Products",icon:ShoppingBag},
-        {name:"Competitions",icon:TrainTrackIcon},
-        {name:"Diet Plans",icon:TrainTrackIcon},
-        {name:"Billed/Invoices",icon:TrainTrackIcon},
-    ]
+    const location = useLocation()
+    const navigate = useNavigate()
+    // const SideBarButtons = [
+    //     {name:"Dashboard",icon:HomeIcon},
+    //     {name:"Members",icon:UsersIcon},
+    //     {name:"Membership Plans",icon:TrainTrackIcon},
+    //     {name:"Products",icon:ShoppingBag},
+    //     {name:"Competitions",icon:TrainTrackIcon},
+    //     {name:"Diet Plans",icon:TrainTrackIcon},
+    //     {name:"Billed/Invoices",icon:TrainTrackIcon},
+    // ]
+
+    const currentPage =
+  sidebarConfig.find(
+    (item) => item.path === location.pathname
+  ) || sidebarConfig[0];
 
     return (
         <div className="flex min-h-screen">
@@ -48,11 +58,11 @@ const Layout = () => {
 
                 {/* sidebar buttons section */}
                 <div className='mt-8 flex flex-col items-center justify-between gap-5'>
-                    {SideBarButtons.map((button,index)=>{
+                    {sidebarConfig.map((button)=>{
                         const Icon = button.icon
                         return(
-                            <button key={index} onClick={()=>setSelectedButton(index)} className={`w-[80%] flex items-center gap-3 p-3 rounded-lg tranisition-all border
-                                ${selectedButton==index?"bg-[#E72023] text-white border-white rounded-lg":"bg-none text-white border-white rounded-lg"}
+                            <button key={button.path} onClick={()=>navigate(button.path)} className={`w-[80%] cursor-pointer flex items-center gap-3 p-3 rounded-lg tranisition-all border
+                                ${location.pathname==button.path?"bg-[#E72023] text-white border-white rounded-lg":"bg-none text-white border-white rounded-lg"}
                             `}>
                                 <Icon size={20}/>
                                 <span>{button.name}</span>
@@ -75,11 +85,11 @@ const Layout = () => {
 
                     <div className="flex flex-col gap-1 flex-1 lg:flex-none lg:ml-0 ml-4">
                         <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-white">
-                            Welcome Back, Admin
+                            {currentPage.heading}
                         </h1>
 
                         <p className="text-xs sm:text-sm text-gray-300">
-                            Here's how your gym is performing
+                            {currentPage.subHeading}
                         </p>
                     </div>
 
@@ -104,7 +114,7 @@ const Layout = () => {
                             "
                         >
                             <h3 className="font-medium">
-                                Add Member
+                                {currentPage.actionButton}
                             </h3>
 
                             <Plus className="w-4 h-4" />
@@ -112,7 +122,7 @@ const Layout = () => {
 
                         <BellIcon className="bg-[#E72023] w-10 h-10 sm:w-11 sm:h-11 text-white cursor-pointer p-2 rounded-lg" />
 
-                        <div className="bg-[#E72023] w-10 h-10 sm:w-11 sm:h-11 text-white cursor-pointer rounded-full"></div>
+                        <div onClick={()=>setProfileIconPopUp(true)} className="bg-[#E72023] w-10 h-10 sm:w-11 sm:h-11 text-white cursor-pointer rounded-full"></div>
 
                     </div>
 
@@ -123,6 +133,59 @@ const Layout = () => {
 
             </div>
 
+            {/* profile Icon popup that shows logout and edit info options */}
+            <div
+    className={`bg-[#0B1625] mt-5 mr-3 fixed right-0 top-0 rounded-xl border border-cyan-400
+    
+    z-50
+    ${
+        profileIconPopUp
+            ? "flex flex-col w-72 p-5"
+            : "hidden"
+    }`}
+>
+    {/* Close Button */}
+    <button
+        onClick={() => setProfileIconPopUp(false)}
+        className="self-end text-white text-lg hover:text-red-500 transition"
+    >
+        ✕
+    </button>
+
+    {/* Profile Section */}
+    <div className="flex flex-col items-center gap-3 mb-6">
+        <div className="w-16 h-16 rounded-full bg-[#E72023] flex items-center justify-center text-white text-xl font-bold">
+            A
+        </div>
+
+        <div className="text-center">
+            <h3 className="text-white font-semibold text-lg">
+                Admin
+            </h3>
+
+            <p className="text-gray-400 text-sm">
+                Gym Administrator
+            </p>
+        </div>
+    </div>
+
+    {/* Buttons */}
+    <div className="flex flex-col gap-3">
+        <button
+            className="w-full py-3 rounded-lg bg-cyan-500 text-white font-medium
+            hover:bg-cyan-600 transition"
+        >
+            Manage Profile
+        </button>
+
+        <button
+            className="w-full py-3 rounded-lg bg-[#E72023] text-white font-medium
+            hover:bg-red-700 transition"
+        >
+            Logout
+        </button>
+    </div>
+</div>
         </div>
     )
 }

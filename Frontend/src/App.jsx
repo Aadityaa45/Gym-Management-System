@@ -3,6 +3,7 @@ import { Routes, Route } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import Dashboard from "./Admin_Pages/Dashboard";
 import Layout from "./components/AdminComponents/layout";
+import Members from "./Admin_Pages/Members";
 const App = () => {
   return (
     <>
@@ -10,7 +11,8 @@ const App = () => {
 
       <Routes>
         <Route  element={<Layout />}>
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/admin/dashboard" element={<Dashboard />} />
+          <Route path="/admin/members" element={<Members/>}/>
         </Route>
       </Routes>
     </>
