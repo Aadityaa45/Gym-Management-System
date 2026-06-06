@@ -1,15 +1,17 @@
-import React, { useState } from 'react'
+import React, { useState,useEffect } from 'react'
 import { Outlet } from 'react-router-dom'
-import { Menu, Plus, BellIcon, Cross, HomeIcon, UsersIcon, TrainTrackIcon, ShoppingBag } from 'lucide-react'
+import { Menu, Plus, BellIcon, Cross, HomeIcon, UsersIcon, TrainTrackIcon, ShoppingBag, XIcon } from 'lucide-react'
 import Logo from '../../assets/Fitness_Beast_Logo.png'
 import { sidebarConfig } from '../../assets/hardcoded_content.js/LayoutNavbarConfig.js'
 import { useLocation } from 'react-router-dom'
 import { useNavigate } from 'react-router-dom'
+import {io} from "socket.io-client"
 
 const Layout = () => {
     const [isSideBarOpen, setIsSideBarOpen] = useState(false)
     // const [selectedButton, setSelectedButton] = useState(0)  //we have used it in ordet to change the background color or to show the selected button
     const [profileIconPopUp, setProfileIconPopUp] = useState(false)
+    const [notificationPopup,setNotificationPopup] = useState(false)
 
     const location = useLocation()
     const navigate = useNavigate()
@@ -27,6 +29,58 @@ const Layout = () => {
   sidebarConfig.find(
     (item) => item.path === location.pathname
   ) || sidebarConfig[0];
+
+    //implementing the realtime notification and number of notifications on the bell icon
+    //here we have two approaches at the time of page load we update the set of notification by useffecting the logs data on ui change 
+    //another option is that instead of just implementing the effect once we should call that from backend after sometimes check that existing notiification array has the same elements or not 
+    //another option is we can use socket.io 
+    // WebSocket ek protocol hai jo client aur server ke beech permanent two-way connection banata hai. Socket.IO us protocol ke upar bana hua ek library/framework hai jo reconnect, rooms, events, broadcasting jaise features provide karke WebSocket ko use karna bahut aasan bana deta hai.
+    // we will be using socket.io here so we will update our notification functionality accordingly
+
+    const [notifications, setNotifications] = useState([
+    {
+        id: 1,
+        message: "New member joined",
+        createdAt: new Date()
+    },
+    {
+        id: 2,
+        message: "Membership expires in 3 days",
+        createdAt: new Date()
+    }
+]);
+
+    useEffect(() => {
+
+    const interval = setInterval(() => {
+
+        setNotifications(prev => [
+            {
+                id: Date.now(),
+                message: "Test Notification",
+                createdAt: new Date()
+            },
+            ...prev
+        ]);
+
+    }, 5000);
+
+    return () => clearInterval(interval);
+
+}, []);  //this is for now for frontend testing later we will going to replace it with our socket io code
+
+    // useEffect(()=>{
+    //     socket.on("new-notification",(notification)=>{
+    //         setNotifications(prev=>[
+    //             notification,
+    //             ...prev
+    //         ])
+    //     });
+    //     return()=>{
+    //         socket.off("new-notification")
+    //     }
+    // },[])
+    // currently this wont work as we didnot connected our backend and due to which it is giving the errorfor now we are just implementing the dummy notifications as of now
 
     return (
         <div className="flex min-h-screen">
@@ -120,7 +174,7 @@ const Layout = () => {
                             <Plus className="w-4 h-4" />
                         </div>
 
-                        <BellIcon className="bg-[#E72023] w-10 h-10 sm:w-11 sm:h-11 text-white cursor-pointer p-2 rounded-lg" />
+                        <BellIcon onClick={()=>setNotificationPopup(!notificationPopup)} className="bg-[#E72023] w-10 h-10 sm:w-11 sm:h-11 text-white cursor-pointer p-2 rounded-lg" />
 
                         <div onClick={()=>setProfileIconPopUp(true)} className="bg-[#E72023] w-10 h-10 sm:w-11 sm:h-11 text-white cursor-pointer rounded-full"></div>
 
@@ -186,6 +240,44 @@ const Layout = () => {
         </button>
     </div>
 </div>
+
+        {/* here, is the block of notification popup */}
+        <div className={`fixed top-20 right-5 z-50
+        bg-[#0B1625]
+        border border-white
+        rounded-lg
+        p-4
+        w-80 ${notificationPopup?"flex flex-col gap-3":"hidden"}`}>
+    {notifications.length > 0 ? (
+        notifications.map((notification) => (
+            <div
+                key={notification.id}
+                className="bg-[#162235] p-3 rounded-lg border border-gray-700 relative"
+            >
+                <button
+                    className="absolute top-2 right-2 text-gray-400 hover:text-red-500 transition"
+                >
+                    <XIcon onClick={()=>setNotificationPopup(false)} size={16} />
+                </button>
+
+                <p className="text-white">
+                    {notification.message}
+                </p>
+
+                <p className="text-gray-400 text-xs mt-1">
+                    {new Date(
+                        notification.createdAt
+                    ).toLocaleString()}
+                </p>
+            </div>
+        ))
+    ) : (
+        <p className="text-gray-400 text-center">
+            No Notifications
+        </p>
+    )}
+</div>
+
         </div>
     )
 }
