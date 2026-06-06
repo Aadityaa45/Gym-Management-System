@@ -174,7 +174,38 @@ const Layout = () => {
                             <Plus className="w-4 h-4" />
                         </div>
 
-                        <BellIcon onClick={()=>setNotificationPopup(!notificationPopup)} className="bg-[#E72023] w-10 h-10 sm:w-11 sm:h-11 text-white cursor-pointer p-2 rounded-lg" />
+                        {/* <BellIcon onClick={()=>setNotificationPopup(!notificationPopup)} className="bg-[#E72023] w-10 h-10 sm:w-11 sm:h-11 text-white cursor-pointer p-2 rounded-lg" /> */}
+                        <div className="relative">
+    
+    <BellIcon
+        onClick={() => setNotificationPopup(!notificationPopup)}
+        className="bg-[#E72023] w-10 h-10 sm:w-11 sm:h-11 text-white cursor-pointer p-2 rounded-lg"
+    />
+
+    {notifications.length > 0 && (
+        <span
+            className="
+                absolute
+                -top-2
+                -right-2
+                bg-red-500
+                text-white
+                text-[10px]
+                font-bold
+                min-w-5
+                h-5
+                px-1
+                rounded-full
+                flex
+                items-center
+                justify-center
+            "
+        >
+            {notifications.length}
+        </span>
+    )}
+
+</div>
 
                         <div onClick={()=>setProfileIconPopUp(true)} className="bg-[#E72023] w-10 h-10 sm:w-11 sm:h-11 text-white cursor-pointer rounded-full"></div>
 
