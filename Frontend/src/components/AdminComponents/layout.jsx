@@ -167,7 +167,7 @@ const Layout = () => {
                                 transition
                             "
                         >
-                            <h3 className="font-medium">
+                            <h3 onClick={()=>navigate('/admin/registration')} className="font-medium">
                                 {currentPage.actionButton}
                             </h3>
 
