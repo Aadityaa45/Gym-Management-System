@@ -9,6 +9,7 @@ const PlanCard = ({
   features,
   members,
   accentColor,
+  onEdit  //here we have added on edit as we will apply this from the parent container on this props 
 }) => {
   return (
     <div
@@ -80,7 +81,8 @@ const PlanCard = ({
           </p>
 
           <button
-            className="flex items-center gap-2 px-4 py-2 rounded-lg border"
+            onClick={()=>onEdit()}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg border cursor-pointer"
             style={{
               borderColor: accentColor,
               color: accentColor,
