@@ -8,6 +8,7 @@ export const sidebarConfig = [
     subHeading: "Here's how your gym is performing",
     icon:HomeIcon,
     actionButton: "Add Member",
+    actionButtonRoute:"/admin/registration"
   },
   {
     name: "Members",
@@ -16,6 +17,7 @@ export const sidebarConfig = [
     subHeading: "Manage all your gym members",
     actionButton: "Add Member",
     icon:HomeIcon,
+    actionButtonRoute:"/admin/add-member"
   },
   {
     name: "MemberShip Plans",
@@ -24,6 +26,7 @@ export const sidebarConfig = [
     subHeading: "Manage your gym membership plans",
     actionButton: "Add Plan",
     icon:HomeIcon,
+    actionButtonRoute:"/admin/add-plans"
   },
   {
     name: "Products",
@@ -32,6 +35,7 @@ export const sidebarConfig = [
     subHeading: "Manage your fitness products inventory",
     actionButton: "Add Product",
     icon:HomeIcon,
+    actionButtonRoute:"/admin/add-products"
   },
   {
     name: "Invoices",
@@ -40,5 +44,6 @@ export const sidebarConfig = [
     subHeading: "History and record of bills and invoices",
     actionButton: "Generate Bill",
     icon:HomeIcon,
+    actionButtonRoute:"/admin/add-invoices"
   },
 ];
