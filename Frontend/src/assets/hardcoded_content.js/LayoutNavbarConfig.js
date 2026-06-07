@@ -19,7 +19,7 @@ export const sidebarConfig = [
   },
   {
     name: "MemberShip Plans",
-    path: "/admin/plans",
+    path: "/admin/membership-plans",
     heading: "Membership Plans",
     subHeading: "Manage your gym membership plans",
     actionButton: "Add Plan",
