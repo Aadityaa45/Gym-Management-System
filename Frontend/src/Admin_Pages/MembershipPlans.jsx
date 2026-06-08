@@ -23,8 +23,24 @@ const MemberShipPlans = () =>{
     //     </div>
     // )
     const [membershipPlans, setMembershipPlans] = useState([]);
-const [selectedPlan, setSelectedPlan] = useState(null);
-const [editPopUp, setEditPopUp] = useState(false);
+    const [selectedPlan, setSelectedPlan] = useState(null);
+    const [editPopUp, setEditPopUp] = useState(false);
+
+    const [editPlansData,setEditPlansData] = useState({
+        PlanName:"",
+        PlanPrice:"",
+        PlanDuration:"",
+        PlanFeatures:""
+    })
+
+    const HandleOnChangeEdit = (e) =>{
+        const {name,value} = e.target
+        setEditPlansData((prev)=>({
+            ...prev,
+            [name]:value
+        }))
+    }
+
 
 return (
     <div className="flex flex-wrap gap-8 justify-center mt-20">
@@ -34,6 +50,13 @@ return (
                 key={plan.title}
                 {...plan}
                 onEdit={() => {
+                    //HERE WE HAVE TO UPDATE THE FATA OF EDITFORMDATA STATE
+                    setEditPlansData({
+                        PlanName:plan.title,
+                        PlanPrice:plan.price,
+                        PlanDuration:plan.duration,
+                        PlanFeatures:plan.features
+                    })
                     setSelectedPlan(plan);
                     setEditPopUp(true);
                 }}
@@ -82,7 +105,9 @@ return (
 
                 <input
                     type="text"
-                    defaultValue={selectedPlan?.title}
+                    name="PlanName"
+                    onChange={HandleOnChangeEdit}
+                    value={editPlansData.PlanName}
                     className="
                         bg-[#162235]
                         border border-gray-700
@@ -102,7 +127,9 @@ return (
 
                 <input
                     type="number"
-                    defaultValue={selectedPlan?.price}
+                    name="PlanPrice"
+                    onChange={HandleOnChangeEdit}
+                    value={editPlansData.PlanPrice}
                     className="
                         bg-[#162235]
                         border border-gray-700
@@ -122,7 +149,9 @@ return (
 
                 <input
                     type="text"
-                    defaultValue={selectedPlan?.duration}
+                    name="PlanDuration"
+                    onChange={HandleOnChangeEdit}
+                    value={editPlansData.PlanDuration}
                     className="
                         bg-[#162235]
                         border border-gray-700
@@ -145,10 +174,10 @@ return (
             </label>
 
             <textarea
+                name="PlanFeatures"
+                onChange={HandleOnChangeEdit}
                 rows={8}
-                defaultValue={
-                    selectedPlan?.features?.join("\n")
-                }
+                value={editPlansData.PlanFeatures}
                 className="
                     w-full
                     bg-[#162235]
