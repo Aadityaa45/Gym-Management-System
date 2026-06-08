@@ -6,6 +6,7 @@ import Layout from "./components/AdminComponents/layout";
 import Members from "./Admin_Pages/Members";
 import Registration from "./Admin_Pages/Registration";
 import MemberShipPlans from "./Admin_Pages/MembershipPlans";
+import PlanAddForm from "./Admin_Pages/AddPlans";
 const App = () => {
   return (
     <>
@@ -17,6 +18,7 @@ const App = () => {
           <Route path="/admin/members" element={<Members/>}/>
           <Route path="/admin/registration" element={<Registration/>}/>
           <Route path="/admin/membership-plans" element = {<MemberShipPlans/>}/>
+          <Route path="/admin/add-plans" element={<PlanAddForm/>}/>
         </Route>
       </Routes>
     </>
