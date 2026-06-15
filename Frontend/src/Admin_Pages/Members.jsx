@@ -27,15 +27,22 @@ const Members = () => {
   }, []);
 
   // Search States
+  //here till the debouncing logic we are encountering that for the empty string also the api call se beingh made to resolve this we will implement the cache using the local state variables
   const [inputValue, setInputValue] = useState("");
   const [searchResultPopup, setSearchResultPopUp] = useState(false);
   const [results, setResults] = useState([]);
+  const [cache,setCache] = useState({})
 
   const InputValueChangeHandler = (e) => {
     setInputValue(e.target.value);
   };
 
   const SearchUserHandler = () => {
+    if(cache[inputValue]){
+        setResults(cache[inputValue])
+        console.log("Cache Detetcted")
+        return
+    }
     console.log("API Call For:", inputValue);
 
     if (!inputValue.trim()) {
@@ -48,6 +55,7 @@ const Members = () => {
     );
 
     setResults(filteredUsers);
+    setCache((prev)=>({...prev,[inputValue]:results})) //yaha hamne previous satet ko update kiya h 
   };
 
   // Debouncing
