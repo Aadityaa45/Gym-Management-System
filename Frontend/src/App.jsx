@@ -7,6 +7,7 @@ import Members from "./Admin_Pages/Members";
 import Registration from "./Admin_Pages/Registration";
 import MemberShipPlans from "./Admin_Pages/MembershipPlans";
 import PlanAddForm from "./Admin_Pages/AddPlans";
+import Products from "./Admin_Pages/Products";
 const App = () => {
   return (
     <>
@@ -19,6 +20,7 @@ const App = () => {
           <Route path="/admin/registration" element={<Registration/>}/>
           <Route path="/admin/membership-plans" element = {<MemberShipPlans/>}/>
           <Route path="/admin/add-plans" element={<PlanAddForm/>}/>
+          <Route path="/admin/products" element={<Products/>}/>
         </Route>
       </Routes>
     </>
