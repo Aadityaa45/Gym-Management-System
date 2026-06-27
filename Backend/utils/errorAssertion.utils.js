@@ -11,4 +11,4 @@ function appAssert(condition, message) {
     }
 }
 
-export const {AppError,appAssert}
+export { AppError, appAssert };

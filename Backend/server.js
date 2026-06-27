@@ -7,6 +7,7 @@ import cors from "cors"
 import cookieParser from 'cookie-parser'
 import ConnectDB from './config/dbconnect.js'
 import colors from 'colors'
+import adminAuthRoutes from './routes/AdminRoutes/auth.admin.routes.js'
 
 
 //get the port running on from here
@@ -35,5 +36,7 @@ const StartServer = async () =>{
         console.log(colors.blue(`Halting Operations!!!`)); 
     }
 }
+
+app.use('/api/admin/auth',adminAuthRoutes)
 
 StartServer()
