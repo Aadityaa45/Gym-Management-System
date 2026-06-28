@@ -16,10 +16,26 @@ const Port = process.env.PORT
 //created a express app in app variaable
 const app = express()
 
+
+const AllowedOrigins = [
+  "http://localhost:5173"
+];
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin || AllowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true, //allows cookies,tokens to be sent to be sent
+};
+
 //initialise the require middelware here
 app.use(cookieParser())
 app.use(express.json())
-app.use(cors())
+app.use(cors(corsOptions))
 
 //lets make the running endpoint
 app.get('/',(req,res)=>res.send(
