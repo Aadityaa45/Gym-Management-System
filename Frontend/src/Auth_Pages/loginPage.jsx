@@ -24,7 +24,8 @@ const AdminLoginPage = () => {
 
   const loginHandler = async () =>{
     try {
-        const backendUrl= process.env.BACKEND_URL
+        const backendUrl= import.meta.env.VITE_BACKEND_URL;
+        console.log(backendUrl)
         const responseFromBackend = await axios.post(
             `${backendUrl}/api/admin/auth/login`,
             loginData,
@@ -44,7 +45,15 @@ const AdminLoginPage = () => {
         }
 
     } catch (error) {
-        toast.error("Something went Wrong")
+        console.log(error);
+
+    console.log(error.response);
+
+    console.log(error.response?.data);
+
+    toast.error(
+        error.response?.data?.message || "Something went Wrong"
+    );
     }
     
   }
@@ -230,6 +239,7 @@ const AdminLoginPage = () => {
 
             <button
               className="mt-8 h-14 w-full rounded-xl bg-red-600 hover:bg-red-500 transition-all duration-300 font-semibold text-white flex items-center justify-center gap-3 shadow-lg shadow-red-700/20"
+              onClick={loginHandler}
             >
               Login
               <ArrowRight size={20} />
