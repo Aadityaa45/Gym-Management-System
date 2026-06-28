@@ -8,7 +8,7 @@ import cookieParser from 'cookie-parser'
 import ConnectDB from './config/dbconnect.js'
 import colors from 'colors'
 import adminAuthRoutes from './routes/AdminRoutes/auth.admin.routes.js'
-
+import getGymRoute from './routes/AdminRoutes/getgym.admin.routes.js'
 
 //get the port running on from here
 const Port = process.env.PORT
@@ -54,5 +54,7 @@ const StartServer = async () =>{
 }
 
 app.use('/api/admin/auth',adminAuthRoutes)
+app.use('/api/gym/',getGymRoute)
+
 
 StartServer()
