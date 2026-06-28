@@ -1,6 +1,7 @@
 import { Outlet } from "react-router-dom";
 import { useContext } from "react";
 import { gymAppContext } from "../contexts/gymAuthContext";
+import { Navigate } from "react-router-dom";
 const ProtectedAdminRoute = () => {
 
     const { loading, isLoggedIn } = useContext(gymAppContext);

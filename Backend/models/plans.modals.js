@@ -13,6 +13,6 @@ const membershipPlanSchema = new mongoose.Schema({
 
 }, { timestamps:true });
 
-const membershipPlanModel = model("membershipPlan", membershipPlanSchema);
+const membershipPlanModel = mongoose.model("membershipPlan", membershipPlanSchema);
 
 export default membershipPlanModel
