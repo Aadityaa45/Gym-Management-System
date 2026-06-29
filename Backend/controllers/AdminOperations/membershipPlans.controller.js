@@ -116,3 +116,22 @@ export const addNewMembershipPlan = async (req,res) =>{
         return res.json({success: false, message:"An error occured while loging in!"});
     }
 }
+
+
+//--------------------------------------------------------------------FETCH ALL PLANS CONTROLLERS----------------------------------------------------
+export const fetchPlans = async (req,res) =>{
+    //since we will always have a very few amount of plans so we can directly give it to the frontend it will not slowdown our app
+    try {
+        const gymId = req.gym.gymId
+        const plans = await membershipPlanModel.find({
+            gym:gymId
+        })
+
+        return res.json({success:true,plans})
+    } catch (error) {
+        if (error instanceof AppError) {
+            return res.json({success: false, message:error.message});
+        }
+        return res.json({success: false, message:"An error occured while loging in!"});
+    }
+}
