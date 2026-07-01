@@ -13,6 +13,13 @@ const AddNewPlan = () =>{
         features:"", //in backend we only allowing features to be array but in our textarea we will be taking input as string and then we will convert this feature into array 
         description: "",
     });
+    const [errors, setErrors] = useState({
+    name: "",
+    price: "",
+    durationInDays: "",
+    description: "",
+    features: ""
+});
 
     const handleInputChange = (e) =>{
         const {name,value} = e.target
@@ -21,10 +28,27 @@ const AddNewPlan = () =>{
             [name]:value
         }))
 
-        validatePlanFields(name,value)
+        const error = validatePlanFields(name,value)
+        setErrors((prev)=>({
+            ...prev,
+            [name]:error
+        }))
     }
 
     const handleSubmit = async () =>{
+        const newErrors = {
+        name: validatePlanFields("name", planData.name),
+        price: validatePlanFields("price", planData.price),
+        durationInDays: validatePlanFields("durationInDays", planData.durationInDays),
+        description: validatePlanFields("description", planData.description),
+        features: validatePlanFields("features", planData.features),
+    };
+
+    setErrors(newErrors);
+
+    if (Object.values(newErrors).some(error => error !== "")) {
+        return toast.error("Please fix the validation errors.");
+    }
         try{
 
         
@@ -47,9 +71,10 @@ const AddNewPlan = () =>{
 
             if(response.data.success){
                 toast.success("Plan added successfully")
+                navigate("/admin/membership-plans")
             }
 
-            navigate("/admin/membership-plans")
+            
 
         }catch{
             toast.error("Something went wrong! Please Try Again")
@@ -88,8 +113,15 @@ const AddNewPlan = () =>{
                         value={planData.name}
                         onChange={handleInputChange}
                         placeholder="Gold Membership"
-                        className="w-full h-14 rounded-xl bg-[#0B1320] border border-gray-700 px-4 outline-none focus:border-red-500"
+                        className={`w-full h-14 rounded-xl bg-[#0B1320] px-4 outline-none
+        ${errors.name ? "border border-red-500" : "border border-gray-700"}
+    `}
                     />
+                    {errors.name && (
+    <p className="text-red-500 text-sm mt-1">
+        {errors.name}
+    </p>
+)}
 
                 </div>
 
@@ -105,8 +137,15 @@ const AddNewPlan = () =>{
                         value={planData.price}
                         onChange={handleInputChange}
                         placeholder="5000"
-                        className="w-full h-14 rounded-xl bg-[#0B1320] border border-gray-700 px-4 outline-none focus:border-red-500"
+                        className={`w-full h-14 rounded-xl bg-[#0B1320] px-4 outline-none
+        ${errors.price ? "border border-red-500" : "border border-gray-700"}
+    `}
                     />
+                    {errors.price && (
+    <p className="text-red-500 text-sm mt-1">
+        {errors.price}
+    </p>
+)}
 
                 </div>
 
@@ -128,8 +167,15 @@ const AddNewPlan = () =>{
                         value={planData.durationInDays}
                         onChange={handleInputChange}
                         placeholder="90"
-                        className="w-full h-14 rounded-xl bg-[#0B1320] border border-gray-700 px-4 outline-none focus:border-red-500"
+                        className={`w-full h-14 rounded-xl bg-[#0B1320] px-4 outline-none
+        ${errors.durationInDays ? "border border-red-500" : "border border-gray-700"}
+    `}
                     />
+                    {errors.durationInDays && (
+    <p className="text-red-500 text-sm mt-1">
+        {errors.durationInDays}
+    </p>
+)}
 
                 </div>
 
@@ -144,8 +190,15 @@ const AddNewPlan = () =>{
                         value={planData.description}
                         onChange={handleInputChange}
                         placeholder="Premium Membership Plan"
-                        className="w-full h-14 rounded-xl bg-[#0B1320] border border-gray-700 px-4 outline-none focus:border-red-500"
+                        className={`w-full h-14 rounded-xl bg-[#0B1320] px-4 outline-none
+        ${errors.description ? "border border-red-500" : "border border-gray-700"}
+    `}
                     />
+                    {errors.description && (
+    <p className="text-red-500 text-sm mt-1">
+        {errors.description}
+    </p>
+)}
 
                 </div>
 
@@ -168,8 +221,15 @@ const AddNewPlan = () =>{
 Locker Facility
 Steam Bath
 Personal Trainer`}
-                    className="w-full rounded-xl bg-[#0B1320] border border-gray-700 p-4 outline-none resize-none focus:border-red-500"
+                    className={`w-full rounded-xl bg-[#0B1320] border border-gray-700 p-4 outline-none resize-none focus:border-red-500
+        ${errors.features ? "border border-red-500" : "border border-gray-700"}
+    `}
                 />
+                {errors.features && (
+    <p className="text-red-500 text-sm mt-1">
+        {errors.features}
+    </p>
+)}
 
                 <p className="text-gray-500 text-sm mt-2">
                     Enter one feature per line.
@@ -179,7 +239,7 @@ Personal Trainer`}
 
             {/* Buttons */}
 
-            <div className="flex justify-end gap-4 mt-10">
+            {/* <div>
 
                 <button
                     onClick={() => navigate("/admin/membership-plans")}
@@ -195,14 +255,31 @@ Personal Trainer`}
                     Add Plan
                 </button>
 
-            </div>
+            </div> */}
+            <div className="flex justify-end gap-4 mt-10">
+    <button
+        onClick={() => navigate("/admin/membership-plans")}
+        className="px-8 h-12 rounded-xl border border-gray-600 hover:bg-gray-800 transition"
+    >
+        Cancel
+    </button>
+
+    <button
+        onClick={handleSubmit}
+        className="px-10 h-12 rounded-xl bg-red-600 hover:bg-red-500 transition font-semibold"
+    >
+        Add Plan
+    </button>
+</div>
 
         </div>
 
     </div>
+    
 
 </div>
     )
 }
 
-export default AddNewPlan;
+
+export default AddNewPlan

@@ -17,7 +17,7 @@ export const sidebarConfig = [
     subHeading: "Manage all your gym members",
     actionButton: "Add Member",
     icon:HomeIcon,
-    actionButtonRoute:"/admin/add-member"
+    actionButtonRoute:"/admin/registration"
   },
   {
     name: "MemberShip Plans",

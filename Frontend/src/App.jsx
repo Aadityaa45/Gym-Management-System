@@ -89,17 +89,12 @@ function App() {
                         />
 
                         <Route
-                            path="/admin/add-plans"
-                            element={<PlanAddForm />}
-                        />
-
-                        <Route
                             path="/admin/products"
                             element={<Products />}
                         />
 
                         <Route
-                            path="/admin/add-plan"
+                            path="/admin/add-plans"
                             element = {<AddNewPlan/>}
                         />
 

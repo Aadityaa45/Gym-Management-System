@@ -14,13 +14,12 @@ const MemberShipPlans = () =>{
     const [selectedPlan, setSelectedPlan] = useState(null);
     const [editPopUp, setEditPopUp] = useState(false);
 
-    const [newPlanData,setNewPlanData] = useState({
-        name:"",
-        price:"",
-        durationInDays:"",
-        features:[],
-
-    })
+    const [editPlansData, setEditPlansData] = useState({
+        PlanName: "",
+        PlanPrice: "",
+        PlanDuration: "",
+        PlanFeatures: ""
+    });
 
     const {isLoggedIn} = useContext(gymAppContext)
     //---------------------------------------Function to get all the plans from the backend---------------------------------
