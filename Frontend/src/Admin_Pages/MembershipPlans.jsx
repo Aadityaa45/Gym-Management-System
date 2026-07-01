@@ -1,37 +1,52 @@
 import React, { useState } from "react";
 import PlanCard from "../components/AdminComponents/PlanCards";
 import { plans } from "../assets/hardcoded_content.js/dummyPlansData";
-
+import { useContext } from "react";
+import { gymAppContext } from "../contexts/gymAuthContext";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import toast from "react-hot-toast";
+import { useEffect } from "react";
+import { getPlanTheme } from "../utils/planthemes";
 const MemberShipPlans = () =>{
-    // const [MembershipPlans, setPlans] = useState([])
-    // const [selectedPlan, setSelectedPlan] = useState(null)
-    // const [editPopUp,setEditPopUp] = useState(false)
-    // //here we will create a fetch plans functionality or we will get it from the app context and put it on our plans array
-    // return(
-    //     <div className="flex flex-wrap gap-8 justify-center mt-20">
-    //         {plans.map((plan)=>(
-    //             <PlanCard key={plan.title} {...plan} onEdit={()=>{
-    //                 setSelectedPlan(plan),
-    //                 setEditPopUp(true)
-    //             }}/>
-    //         ))}
 
-    //         {/* edit plans detail div popup section */}
-    //         <div className={`h-auto w-[60%] border-white rounded-lg ${editPopUp?"flex items-center justify-center gap-2":"hidden"}`} >
-    //             <h3>{selectedPlan.title}</h3>
-    //         </div>
-    //     </div>
-    // )
     const [membershipPlans, setMembershipPlans] = useState([]);
     const [selectedPlan, setSelectedPlan] = useState(null);
     const [editPopUp, setEditPopUp] = useState(false);
 
-    const [editPlansData,setEditPlansData] = useState({
-        PlanName:"",
-        PlanPrice:"",
-        PlanDuration:"",
-        PlanFeatures:""
+    const [newPlanData,setNewPlanData] = useState({
+        name:"",
+        price:"",
+        durationInDays:"",
+        features:[],
+
     })
+
+    const {isLoggedIn} = useContext(gymAppContext)
+    //---------------------------------------Function to get all the plans from the backend---------------------------------
+    const getPlans = async () =>{
+        try {
+            const backendUrl = import.meta.env.VITE_BACKEND_URL;
+            const {data} = await axios.get(
+                `${backendUrl}/api/gym/membership-plans`,
+                {
+                    withCredentials:true
+                }
+            )
+            if(data.success){
+                setMembershipPlans(data.plans)
+            }
+        } catch (error) {
+            return toast.error("Something went wrong")
+        }
+    }
+
+    //--------------------------------------Useffect hook to fetch the plans data whenever page renders-------------------
+    useEffect(()=>{
+        if(isLoggedIn){
+            getPlans()
+        }
+    },[isLoggedIn])
 
     const HandleOnChangeEdit = (e) =>{
         const {name,value} = e.target
@@ -45,23 +60,58 @@ const MemberShipPlans = () =>{
 return (
     <div className="flex flex-wrap gap-8 justify-center mt-20">
 
-        {plans.map((plan) => (
+        {/* {membershipPlans.map((plan) => (
             <PlanCard
-                key={plan.title}
+                key={plan._id}
                 {...plan}
                 onEdit={() => {
                     //HERE WE HAVE TO UPDATE THE FATA OF EDITFORMDATA STATE
                     setEditPlansData({
-                        PlanName:plan.title,
+                        PlanName:plan.name,
                         PlanPrice:plan.price,
-                        PlanDuration:plan.duration,
+                        PlanDuration:plan.durationInDays,
                         PlanFeatures:plan.features
                     })
                     setSelectedPlan(plan);
                     setEditPopUp(true);
                 }}
             />
-        ))}
+        ))} */}
+        {membershipPlans.map((plan,index)=>{
+
+    const {
+        accentColor,
+        icon
+    } = getPlanTheme(index);
+
+    return(
+
+        <PlanCard
+            key={plan._id}
+
+            {...plan}
+
+            accentColor={accentColor}
+
+            icon={icon}
+
+            onEdit={()=>{
+                //HERE WE HAVE TO UPDATE THE FATA OF EDITFORMDATA STATE
+                    setEditPlansData({
+                        PlanName:plan.name,
+                        PlanPrice:plan.price,
+                        PlanDuration:plan.durationInDays,
+                        PlanFeatures:plan.features
+                    })
+                    setSelectedPlan(plan);
+                    setEditPopUp(true);
+            }}
+
+        />
+
+    )
+
+})}
 
         {/* edit plans popup section */}
         <div

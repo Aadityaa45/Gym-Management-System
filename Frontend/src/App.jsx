@@ -39,6 +39,7 @@ import Registration from "./Admin_Pages/Registration";
 import MemberShipPlans from "./Admin_Pages/MembershipPlans";
 import PlanAddForm from "./Admin_Pages/AddPlans";
 import Products from "./Admin_Pages/Products";
+import AddNewPlan from "./Admin_Pages/NewPlans";
 
 
 import AdminLoginPage from "./Auth_Pages/loginPage";
@@ -95,6 +96,11 @@ function App() {
                         <Route
                             path="/admin/products"
                             element={<Products />}
+                        />
+
+                        <Route
+                            path="/admin/add-plan"
+                            element = {<AddNewPlan/>}
                         />
 
                     </Route>

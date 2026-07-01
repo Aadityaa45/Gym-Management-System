@@ -4,7 +4,6 @@ import { appAssert } from "../../utils/errorAssertion.utils.js"
 import { AppError } from "../../utils/errorAssertion.utils.js"
 import emailService from "../../services/email.service.js"
 import GymDetails from "../../models/gym.modals.js"
-import { act } from "react"
 //here we have to implement all the functionality regarding the membership plans including all the CRUD operations and fetching searching
 
 

@@ -2,13 +2,12 @@ import React from "react";
 import { Edit2, CheckCircle } from "lucide-react";
 
 const PlanCard = ({
-  title,
+  name,
   price,
-  duration,
-  icon: Icon,
+  durationInDays,
   features,
-  members,
   accentColor,
+  icon: Icon,
   onEdit  //here we have added on edit as we will apply this from the parent container on this props 
 }) => {
   return (
@@ -24,7 +23,7 @@ const PlanCard = ({
       <div>
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-white text-2xl font-semibold">
-            {title}
+            {name}
           </h2>
 
           <div
@@ -46,7 +45,7 @@ const PlanCard = ({
           </h1>
 
           <span className="text-gray-400">
-            /{duration}
+            /{durationInDays} days
           </span>
         </div>
 
@@ -77,7 +76,7 @@ const PlanCard = ({
 
         <div className="flex justify-between items-center">
           <p className="text-gray-400">
-            {members} Members
+             Members
           </p>
 
           <button
