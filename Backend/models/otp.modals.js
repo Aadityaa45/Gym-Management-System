@@ -11,6 +11,67 @@ const otpSchema = new mongoose.Schema({
     expiresAt: {type: Date, required: true},
     verified: {type: Boolean, default: false},
     attempts: {type: Number, default:0},
+    
+    //this temporary field will be used to store the data of the register form as with the otp this data will also will be deleted if the otp is not verified within the time limit
+    registrationData: {
+
+    fullName: {
+        type: String,
+        trim: true
+    },
+
+    phone: {
+        type: String,
+        trim: true
+    },
+
+    address: {
+        type: String,
+        trim: true
+    },
+
+    dob: {
+        type: Date
+    },
+
+    membership: {
+
+        plan: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "membershipplans"
+        },
+
+        additionalDiscount: {
+            type: Number,
+            default: 0
+        },
+
+        totalFee: {
+            type: Number,
+            default: 0
+        },
+
+        amountPaid: {
+            type: Number,
+            default: 0
+        },
+
+        paymentLeft: {
+            type: Number,
+            default: 0
+        },
+
+        paymentMode: {
+            type: String,
+            enum: ["Cash", "UPI", "Card"]
+        }
+
+    },
+
+    registeredBy: {
+        type: String,
+    }
+}
 
 }, { timestamps: true });
 

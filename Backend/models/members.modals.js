@@ -12,7 +12,7 @@ const membersSchema = new mongoose.Schema({
     registrationdate : { type:Date, default:Date.now },
     address : { type:String },
     dob : { type:Date, required:true },
-    status : { type:String, enum:member_statuses, default:member_statuses[3]},
+    status : { type:String, enum:member_statuses, default:member_statuses[0]},
     lastLoginAt : Date,
     gym : { type:mongoose.Types.ObjectId, ref:"GymDetails"},
     
