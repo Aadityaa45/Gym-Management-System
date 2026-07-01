@@ -25,6 +25,8 @@ const membersSchema = new mongoose.Schema({
     fee : {
         total : { type:Number, default:0 },
         paid : { type:Number, default:0 },
+        remaining : { type:Number, default:0 },
+        discount : { type:Number, default:0 }
     },
 
     membership : { 
@@ -45,7 +47,8 @@ const membersSchema = new mongoose.Schema({
         planEndDate : { type:Date }
     },
 
-    registeredBy : { type:mongoose.Types.ObjectId, ref: "users" },
+    // registeredBy : { type:mongoose.Types.ObjectId, ref: "users" },
+    registeredBy : {type: String, required:true}
 
 }, { timestamps:true });
 

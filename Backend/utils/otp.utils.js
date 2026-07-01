@@ -10,7 +10,7 @@ export const generateOtp = async () =>{
 
 
 //this is the function to create or update the otp
-export const createUpdateOtp = async ({gym,email,purpose}) =>{
+export const createUpdateOtp = async ({gym,email,purpose,registrationData}) =>{
     const otpExpiryMinutes = 5
     const otp = await generateOtp()
     const hashedOtp = await bcrypt.hash(otp,12)
@@ -22,7 +22,8 @@ export const createUpdateOtp = async ({gym,email,purpose}) =>{
             otp:hashedOtp,
             expiresAt:otpExpiresAt,
             verified: false,
-            attempts: 0
+            attempts: 0,
+            registrationData: registrationData || {}
         },
         {
             upsert: true,
@@ -31,7 +32,7 @@ export const createUpdateOtp = async ({gym,email,purpose}) =>{
     );
 
     //sending OTP to the email
-    await emailService.sendOtpEmail(email,otp)
+    await EmailService.sendOtpEmail(email,otp)
     return otp
 }
 
@@ -41,7 +42,7 @@ export const verifyOtpRecord = async ({gym,email,otp,purpose})=>{
     appAssert(otp_entry, "OTP not found !!!");
     appAssert(otp_entry.expiresAt.getTime() > Date.now(), "OTP expired. Resend to continue.");
 
-    if (otp_entry.attempts >= MAX_OTP_ATTEMPTS) {
+    if (otp_entry.attempts >= 3) {
         await otpModel.deleteOne({ _id: otp_entry._id});
         throw new Error("Max attempts exceeded");
     }

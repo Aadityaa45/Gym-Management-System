@@ -3,6 +3,9 @@ import express from "express"
 import { appAssert } from "../../utils/errorAssertion.utils.js";
 import { AppError } from "../../utils/errorAssertion.utils.js";
 import GymDetails from "../../models/gym.modals.js";
+import MembershipPlanModel from "../../models/plans.modals.js";
+import { createUpdateOtp, verifyOtpRecord } from "../../utils/otp.utils.js";
+import { randomPasswordGenerator } from "../../utils/RandomPasswordGenerator.utils.js";
 
 //this controllers will be having all the operations related to members including resgistrations to filterations 
 
@@ -17,48 +20,6 @@ export const registerMember = async (req,res)=>{
     //step 7: we will generate the invoice/bill
     //step8 : we will also send the email to user with his/her credentials and other details such as invoice/bill 
 
-    // fullName : { type:String, required:true, trim: true },
-    //     email : { type:String, required:true, lowercase: true, trim: true },
-    //     phone : { type:String, required:true },
-    //     password : {type: String},
-    //     joiningdate : { type:Date },
-    //     registrationdate : { type:Date, default:Date.now },
-    //     address : { type:String },
-    //     dob : { type:Date, required:true },
-    //     status : { type:String, enum:member_statuses, default:member_statuses[3]},
-    //     lastLoginAt : Date,
-    //     gym : { type:mongoose.Types.ObjectId, ref:"GymDetails"},
-        
-    //     physique : {
-    //         heightInCm : { type:Number },
-    //         weightInKg : { type:Number },
-    //         targetWeightInKg : { type:Number },
-    //     },
-        
-    //     fee : {
-    //         total : { type:Number, default:0 },
-    //         paid : { type:Number, default:0 },
-    //     },
-    
-    //     membership : { 
-    //         plan : { type:mongoose.Types.ObjectId, ref: "membershipplans" },
-    //         planStartDate : { type:Date },
-    //         planEndDate : { type:Date }
-    //     },
-    
-    //     diet : { 
-    //         plan : { type:mongoose.Types.ObjectId, ref: "dietplans" },
-    //         planStartDate : { type:Date },
-    //         planEndDate : { type:Date }
-    //     },
-    
-    //     workout : { 
-    //         plan : { type:mongoose.Types.ObjectId, ref: "workoutplans" },
-    //         planStartDate : { type:Date },
-    //         planEndDate : { type:Date }
-    //     },
-    
-    //     registeredBy : { type:mongoose.Types.ObjectId, ref: "users" },
     try{
         //get the gym id from the middleware
         const gymId = req.gym.gymId
@@ -68,13 +29,154 @@ export const registerMember = async (req,res)=>{
 
         appAssert(gymExist,"Gym Not Found! Please Login Again!")
 
-        //lets get the 
+        //lets get the registration data from the body 
+        const {
+            fullname,
+            email,
+            phone,
+            joiningdate,
+            address,
+            dob,
+            fee,
+            membership,
+            registeredBy
+        } = req.body
+        appAssert(fullname,"Full Name is Required!")
+        appAssert(typeof fullname === "string","Full Name Must be a String!")
+
+        appAssert(email,"Email is Required!")
+        appAssert(typeof email === "string","Email Must be a String!")
+
+                    appAssert(
+                /^[0-9]{10}$/.test(phone),
+                "Invalid Phone Number"
+            )
+
+                    appAssert(
+                !isNaN(new Date(joiningdate)),
+                "Invalid Joining Date"
+            )
+
+                    appAssert(address,"Address is Required!")
+                    appAssert(dob,"Date of Birth is Required!")
+
+                    appAssert(
+                typeof fee.total === "number",
+                "Fee total is required"
+            )
+
+            appAssert(
+                typeof fee.paid === "number",
+                "Paid amount is required"
+            )
+
+            appAssert(
+                fee.paid <= fee.total,
+                "Paid amount cannot exceed total fee"
+            )
+
+        appAssert(membership,"Membership is Required!")
+
+        appAssert(typeof membership === "object","Membership Must be an Object!")
+        appAssert(registeredBy,"Registered By is Required!")
 
 
-        //now we have the gym
+        //------------------------------------ENTERED PLAN VALIDATION--------------------------------------------
+        //we get the data and now we have to check weather the entered plan already exist or not in the database and if it exist then we will check weather the plan is active or not and if it is active then we will allow the registration otherwise we will not allow the registration
+        const isPlanExist = await MembershipPlanModel.findById(membership.plan)
+        appAssert(isPlanExist,"Membership Plan Not Found!")
+        appAssert(isPlanExist.status === "active","Membership Plan is not Active!")
+        
+        //-------------------------------------ENTERED KEY INFO OF MEMBER VALIDATION-----------------------------------------
+        //now we will check weather any member with the same email,phone,fullname and gym exist or not
+        //the inution behind checking this is that if in MMA section there are two kids and have same father info for email and phone so in that case we will check names also because in that case the names will be different so we will check all the three fields to avoid any confusion
+        const isMemberExist = await MembersModel.findOne({
+            email:email,
+            phone:phone,
+            fullName:fullname,
+            gym:gymId
+        })
+        appAssert(!isMemberExist,"Member with the same email, phone, or full name already exists!")
+
+        //--------------------------------------------SAVING THE DATA IN OTP AND SENDING OTP TO USER EMAIL----------------------------
+        await createUpdateOtp({
+            gym:gymId,
+            email:email,
+            purpose:"registration",
+            registrationData:req.body
+        })
+
+        return res.json({
+            success:true,
+            message:"OTP sent Successfully"
+        })
+
     }catch(error){
-
+        if (error instanceof AppError) {
+                    return res.json({success: false, message:error.message});
+                }
+                return res.json({success: false, message:"An error occured while loging in!"});
     }
     
+}
 
+
+
+//-------------------------------------------REGISTRATION OTP VERIFICATION AND MEMBER DATA SAVING IN DATABASE---------------------------------------------
+export const verifyRegistrationOtp = async (req,res) =>{
+    try{
+        const gymId = req.gym.gymId
+        const {email,otp} = req.body
+        appAssert(email,"Email is Required!")
+        appAssert(otp,"OTP is Required!")
+
+       const verificationResult = await verifyOtpRecord({
+            gym:gymId,
+            email:email,
+            otp:otp,
+            purpose:"registration"
+        })
+
+        const password = randomPasswordGenerator(8) // Generate a random password of length 8
+
+        //if the otp is verified then we will save the data in the database
+        if(verificationResult.verified){
+            const finalRegistrationData = new MembersModel({
+                fullName: verificationResult.registrationData.fullname,
+                email: verificationResult.registrationData.email,
+                phone: verificationResult.registrationData.phone,
+                joiningdate: verificationResult.registrationData.joiningdate,
+                address: verificationResult.registrationData.address,
+                dob:verificationResult.registrationData.dob,
+                gym:gymId,
+                password: await bcrypt.hash(password, 12), // Hash the generated password
+                fee: verificationResult.registrationData.fee,
+                membership: verificationResult.registrationData.membership,
+                registeredBy: verificationResult.registrationData.registeredBy
+
+            })
+            await finalRegistrationData.save()
+
+            //now we will delete the otp record from the database as it is no longer needed
+            await otpModel.deleteMany({
+                gym:gymId,
+                email:email,
+                purpose:"registration"
+            })
+
+            //now we will send the email to the user with his/her credentials and other details such as invoice/bill
+            await emailService.sendWelcomeEmail(verificationResult.registrationData.fullname, email, password)
+
+            return res.json({
+                success:true,
+                message:"Member Registered Successfully and Email Sent to the User with his/her Credentials"
+            })
+        }
+
+    }catch{
+         if (error instanceof AppError) {
+                    return res.json({success: false, message:error.message});
+                }
+                return res.json({success: false, message:"An error occured while loging in!"});
+    }
 }

@@ -25,6 +25,12 @@ const otpSchema = new mongoose.Schema({
         trim: true
     },
 
+    email:{
+        type: String,
+        lowercase: true,
+        trim: true
+    },
+
     address: {
         type: String,
         trim: true

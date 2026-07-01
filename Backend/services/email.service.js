@@ -42,11 +42,14 @@ class EmailService {
         });
     }
 
-    async sendWelcomeEmail(name, email) {
+    async sendWelcomeEmail(name, email, password) {
         const html = `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin:auto;">
                 <h2>Welcome ${name} 🎉</h2>
                 <p>Your account has been successfully created.</p>
+                <p>Here are your login credentials:</p>
+                <p><strong>Email:</strong> ${email}</p>
+                <p><strong>Password:</strong> ${password}</p>
                 <p>Thank you for joining us.</p>
             </div>
         `;
