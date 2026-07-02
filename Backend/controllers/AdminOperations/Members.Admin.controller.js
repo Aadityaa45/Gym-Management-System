@@ -1,4 +1,4 @@
-import MembersModel from "../../models/Members.model.js";
+import membersModel from "../../models/members.modals.js";
 import express from "express"
 import { appAssert } from "../../utils/errorAssertion.utils.js";
 import { AppError } from "../../utils/errorAssertion.utils.js";
@@ -6,6 +6,9 @@ import GymDetails from "../../models/gym.modals.js";
 import MembershipPlanModel from "../../models/plans.modals.js";
 import { createUpdateOtp, verifyOtpRecord } from "../../utils/otp.utils.js";
 import { randomPasswordGenerator } from "../../utils/RandomPasswordGenerator.utils.js";
+import bcrypt from "bcryptjs"
+import EmailService from "../../services/email.service.js";
+import otpModel from "../../models/otp.modals.js";
 
 //this controllers will be having all the operations related to members including resgistrations to filterations 
 
@@ -21,11 +24,14 @@ export const registerMember = async (req,res)=>{
     //step8 : we will also send the email to user with his/her credentials and other details such as invoice/bill 
 
     try{
+        console.log("Regsitration Api hit");
         //get the gym id from the middleware
         const gymId = req.gym.gymId
 
         //check weather the gym exist or not
+        console.log(1)
         const gymExist = await GymDetails.findById(gymId)
+        console.log(2)
 
         appAssert(gymExist,"Gym Not Found! Please Login Again!")
 
@@ -83,28 +89,34 @@ export const registerMember = async (req,res)=>{
 
         //------------------------------------ENTERED PLAN VALIDATION--------------------------------------------
         //we get the data and now we have to check weather the entered plan already exist or not in the database and if it exist then we will check weather the plan is active or not and if it is active then we will allow the registration otherwise we will not allow the registration
+        console.log(3)
         const isPlanExist = await MembershipPlanModel.findById(membership.plan)
+        console.log(4)
         appAssert(isPlanExist,"Membership Plan Not Found!")
-        appAssert(isPlanExist.status === "active","Membership Plan is not Active!")
+        appAssert(isPlanExist.active === true,"Membership Plan is not Active!")
         
         //-------------------------------------ENTERED KEY INFO OF MEMBER VALIDATION-----------------------------------------
         //now we will check weather any member with the same email,phone,fullname and gym exist or not
         //the inution behind checking this is that if in MMA section there are two kids and have same father info for email and phone so in that case we will check names also because in that case the names will be different so we will check all the three fields to avoid any confusion
-        const isMemberExist = await MembersModel.findOne({
+        console.log(5)
+        const isMemberExist = await membersModel.findOne({
             email:email,
             phone:phone,
             fullName:fullname,
             gym:gymId
         })
+        console.log(6)
         appAssert(!isMemberExist,"Member with the same email, phone, or full name already exists!")
 
         //--------------------------------------------SAVING THE DATA IN OTP AND SENDING OTP TO USER EMAIL----------------------------
+        console.log(7)
         await createUpdateOtp({
             gym:gymId,
             email:email,
             purpose:"registration",
             registrationData:req.body
         })
+        console.log(8)
 
         return res.json({
             success:true,
@@ -115,7 +127,6 @@ export const registerMember = async (req,res)=>{
         if (error instanceof AppError) {
                     return res.json({success: false, message:error.message});
                 }
-                return res.json({success: false, message:"An error occured while loging in!"});
     }
     
 }
@@ -130,12 +141,14 @@ export const verifyRegistrationOtp = async (req,res) =>{
         appAssert(email,"Email is Required!")
         appAssert(otp,"OTP is Required!")
 
+        console.log(1)
        const verificationResult = await verifyOtpRecord({
             gym:gymId,
             email:email,
             otp:otp,
             purpose:"registration"
         })
+        console.log(2)
 
         const password = randomPasswordGenerator(8) // Generate a random password of length 8
 
@@ -155,28 +168,33 @@ export const verifyRegistrationOtp = async (req,res) =>{
                 registeredBy: verificationResult.registrationData.registeredBy
 
             })
+            console.log(3)
             await finalRegistrationData.save()
+            console.log(4)
 
             //now we will delete the otp record from the database as it is no longer needed
+            console.log(5)
             await otpModel.deleteMany({
                 gym:gymId,
                 email:email,
                 purpose:"registration"
             })
+            console.log(6)
 
             //now we will send the email to the user with his/her credentials and other details such as invoice/bill
+            console.log(7)
             await emailService.sendWelcomeEmail(verificationResult.registrationData.fullname, email, password)
-
+            console.log(8)
             return res.json({
                 success:true,
                 message:"Member Registered Successfully and Email Sent to the User with his/her Credentials"
             })
         }
 
-    }catch{
+    }catch(error){
          if (error instanceof AppError) {
                     return res.json({success: false, message:error.message});
                 }
-                return res.json({success: false, message:"An error occured while loging in!"});
+                console.error(error);
     }
 }

@@ -3,6 +3,8 @@ import crypto from 'crypto'
 import bcrypt from "bcryptjs";
 import EmailService from "../services/email.service.js";
 
+import { appAssert } from "../utils/errorAssertion.utils.js";
+
 //here, we have used special crypto based approach for the unpredictive otp 
 export const generateOtp = async () =>{
     return crypto.randomInt(100000,1000000).toString()

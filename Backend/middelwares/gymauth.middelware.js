@@ -6,6 +6,7 @@ import { AppError } from "../utils/errorAssertion.utils.js";
 
 export const gymAuth = async (req,res,next)=>{
     try {
+        console.log("Gym auth middleware");
         console.log(req.cookies)
         const {accessToken} = req.cookies  //requesting from cookies as we have stored the token in the cookie
         appAssert(accessToken,"Unauthorized Login Again!")

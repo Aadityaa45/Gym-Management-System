@@ -54,6 +54,6 @@ const membersSchema = new mongoose.Schema({
 
 membersSchema.index({ gym: 1, email: 1 }, { unique: true });
 
-const membersModel = model("member", membersSchema);
+const membersModel = mongoose.model("member", membersSchema);
 
 export default membersModel
