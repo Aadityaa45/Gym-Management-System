@@ -71,6 +71,27 @@ const GymContextProvider = ({ children }) => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [loading, setLoading] = useState(true);
     const [gymData, setGymData] = useState(null);
+    const [membershipPlans,setMembershipPlans] = useState([])
+
+
+    //---------------------------------------Function to get all the plans from the backend---------------------------------
+    const getPlans = async () =>{
+        try {
+            console.log("Api called")
+            const backendUrl = import.meta.env.VITE_BACKEND_URL;
+            const {data} = await axios.get(
+                `${backendUrl}/api/gym/membership-plans`,
+                {
+                    withCredentials:true
+                }
+            )
+            if(data.success){
+                setMembershipPlans(data.plans)
+            }
+        } catch (error) {
+            return toast.error("Something went wrong")
+        }
+    }
 
     useEffect(() => {
         axios.defaults.withCredentials = true;
@@ -108,6 +129,13 @@ const GymContextProvider = ({ children }) => {
 
     }, []);
 
+    useEffect(()=>{
+        if(isLoggedIn){
+            getPlans()
+        }
+        
+    },[isLoggedIn])
+
     return (
         <gymAppContext.Provider
             value={{
@@ -117,6 +145,8 @@ const GymContextProvider = ({ children }) => {
                 gymData,
                 setGymData,
                 loading,
+                membershipPlans,
+                setMembershipPlans
             }}
         >
             {children}

@@ -1,14 +1,17 @@
 import React, { useEffect,useState } from "react";
 import toast from "react-hot-toast";
+import { useContext } from "react";
+import { gymAppContext } from "../contexts/gymAuthContext";
 
 const Registration = () => {
-    const [membershipPlans, setMembershipPlans] = useState()//this is for when we will recieve membership plans from the backend and we can implement it in our drop down menu
+    const { membershipPlans, setMembershipPlans } = useContext(gymAppContext);
+    console.log(membershipPlans)
     const [registrationData,setRegistrationData] = useState({
         FirstName: "",
         LastName: "",
         Address:"",
         DateOfBirth:"",
-        AadharNumber:"",
+        email:"",
         SelectedPlan:"",
         AdditionalDiscount:"",
         PaymentMode:"",
@@ -88,11 +91,11 @@ const Registration = () => {
                     />
 
                     <input
-                        name="AadharNumber"
+                        name="email"
                         onChange={HandleChange}
-                        value={registrationData.AadharNumber}
-                        type="text"
-                        placeholder="Aadhar Number"
+                        value={registrationData.email}
+                        type="email"
+                        placeholder="Email"
                         className="bg-[#0D1B2A] border border-green-700 rounded-md p-4 outline-none"
                     />
 
@@ -103,9 +106,9 @@ const Registration = () => {
                         className="bg-[#0D1B2A] border border-green-700 rounded-md p-4 outline-none"
                     >
                         <option>Select the Plan</option>
-                        <option>Monthly</option>
-                        <option>Quarterly</option>
-                        <option>Yearly</option>
+                        {membershipPlans && membershipPlans.map((plans)=>(
+                            <option key={plans._id}>{plans.name}</option>
+                        ))}
                     </select>
                 </div>
 
