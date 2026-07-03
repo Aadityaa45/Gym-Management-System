@@ -354,26 +354,7 @@ const payload = {
       {/* OTP Boxes */}
       <div className="flex justify-center gap-3 mb-8">
 
-        {/* {[...Array(6)].map((_, index) => (
-          <input
-            key={index}
-            type="text"
-            maxLength={1}
-            className="
-              w-12
-              h-14
-              bg-[#08213d]
-              border
-              border-gray-600
-              rounded-lg
-              text-center
-              text-xl
-              text-white
-              outline-none
-              focus:border-red-500
-            "
-          />
-        ))} */}
+    
         {inputArray.map((input,index)=>(
             <input
                 className="

@@ -154,7 +154,7 @@ export const verifyRegistrationOtp = async (req,res) =>{
 
         //if the otp is verified then we will save the data in the database
         if(verificationResult.verified){
-            const finalRegistrationData = new MembersModel({
+            const finalRegistrationData = new membersModel({
                 fullName: verificationResult.registrationData.fullname,
                 email: verificationResult.registrationData.email,
                 phone: verificationResult.registrationData.phone,
@@ -183,7 +183,7 @@ export const verifyRegistrationOtp = async (req,res) =>{
 
             //now we will send the email to the user with his/her credentials and other details such as invoice/bill
             console.log(7)
-            await emailService.sendWelcomeEmail(verificationResult.registrationData.fullname, email, password)
+            await EmailService.sendWelcomeEmail(verificationResult.registrationData.fullname, email, password)
             console.log(8)
             return res.json({
                 success:true,
