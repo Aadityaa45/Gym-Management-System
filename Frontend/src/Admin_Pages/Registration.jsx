@@ -51,7 +51,7 @@ const Registration = () => {
                 [name]:error
             }))
         }
-    }
+    
 
 
     useEffect(() => {
@@ -88,7 +88,7 @@ if (remaining > total) {
     return toast.error("Remaining payment cannot exceed total amount");
 }
 const payload = {
-    fullName: `${registrationData.firstName} ${registrationData.lastName}`,
+    fullname: `${registrationData.firstName} ${registrationData.lastName}`,
     email: registrationData.email.trim(),
     phone: registrationData.phoneNumber,
     joiningdate: new Date(),
@@ -113,7 +113,7 @@ const payload = {
             //----------------------------------------Now lets call backend-----------------------------------
              const backendUrl = import.meta.env.VITE_BACKEND_URL;
              const response = await axios.post(
-                `${backendUrl}/api/admin/members//register-member`,
+                `${backendUrl}/api/admin/members/register-member`,
                 payload,
                 {
                     withCredentials:true
@@ -161,6 +161,37 @@ const payload = {
     const handleKeyDown = (e,index) =>{
         if(e.key==="Backspace" && index>0 && inputArray[index]===""){
             inputRef.current[index-1].focus()
+        }
+    }
+
+    //---------------------------------------OTP VALIDATION BACKEND CALL--------------------------
+    const OTPvalidationHandler = async(email)=>{
+        try {
+            const payload = {
+                email,
+                otp:inputArray.join("")
+            }
+            const backendUrl = import.meta.env.VITE_BACKEND_URL;
+            const response = await axios.post(
+                `${backendUrl}/api/admin/members/verify-otp`,
+                payload,
+                {
+                    withCredentials:true
+                }
+            )
+
+            if(response.data.success){
+                toast.success("Member Registered Successfully!")
+                setOTPPopUp(false)
+            }else{
+                toast.error()
+            }
+        } catch (error) {
+            console.log(error);
+
+    toast.error(
+        error.response?.data?.message || "Something went wrong"
+    );
         }
     }
 
@@ -320,7 +351,7 @@ const payload = {
                 {/* Submit Button */}
                 <div className="flex justify-center">
                     <button onClick={generateOTPHanlder}
-                        type="submit"
+                        type="button"
                         className="
                             bg-[#EF2424]
                             hover:bg-red-700
@@ -369,7 +400,7 @@ const payload = {
               text-white
               outline-none
               focus:border-red-500"
-             key={index} name="index" onKeyDown={(e)=>handleKeyDown(e,index)} type="text" value={digit} onChange={(e)=>handleOtpChange(e,index)} />
+             key={index} maxLength={1} onKeyDown={(e)=>handleKeyDown(e,index)} type="text" value={inputArray[index]} onChange={(e)=>handleOtpChange(e,index)} ref={(el)=>inputRef.current[index]=el} />
         ))}
 
       </div>
@@ -389,6 +420,7 @@ const payload = {
 
       {/* Button */}
       <button
+        onClick={()=>OTPvalidationHandler(registrationData.email)}
         className="
           w-full
           bg-red-500
@@ -410,6 +442,6 @@ const payload = {
 )}
         </div>
     );
-;
+}
 
 export default Registration;

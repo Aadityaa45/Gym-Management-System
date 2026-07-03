@@ -36,6 +36,7 @@ export const registerMember = async (req,res)=>{
         appAssert(gymExist,"Gym Not Found! Please Login Again!")
 
         //lets get the registration data from the body 
+        
         const {
             fullname,
             email,
@@ -47,43 +48,63 @@ export const registerMember = async (req,res)=>{
             membership,
             registeredBy
         } = req.body
+        console.log(req.body)
+        console.log("v1")
         appAssert(fullname,"Full Name is Required!")
         appAssert(typeof fullname === "string","Full Name Must be a String!")
+        console.log("v2")
 
+        console.log("v3")
         appAssert(email,"Email is Required!")
         appAssert(typeof email === "string","Email Must be a String!")
+        console.log("v4")
 
+                console.log("v5")
                     appAssert(
                 /^[0-9]{10}$/.test(phone),
                 "Invalid Phone Number"
             )
+            console.log("v6")
 
+            console.log("v7")
                     appAssert(
                 !isNaN(new Date(joiningdate)),
                 "Invalid Joining Date"
             )
+            console.log("v8")
 
+
+                console.log("v9")
                     appAssert(address,"Address is Required!")
                     appAssert(dob,"Date of Birth is Required!")
+                console.log("v10")
 
+                    console.log("v11")
                     appAssert(
                 typeof fee.total === "number",
                 "Fee total is required"
             )
+            console.log("v12")
 
+            console.log("v13")
             appAssert(
                 typeof fee.paid === "number",
                 "Paid amount is required"
             )
+            console.log("v14")
 
+            console.log("v15")
             appAssert(
                 fee.paid <= fee.total,
                 "Paid amount cannot exceed total fee"
             )
-
+            console.log("v16")
         appAssert(membership,"Membership is Required!")
+        console.log("v17")
 
+        console.log("v18")
         appAssert(typeof membership === "object","Membership Must be an Object!")
+        console.log("v19")
         appAssert(registeredBy,"Registered By is Required!")
 
 
@@ -199,5 +220,45 @@ export const verifyRegistrationOtp = async (req,res) =>{
     }
 }
 
+
+//-----------------------------------------------------CONTROLLER FOR FETCHING MEMBERS WITH PAGINATION---------------------------------
+export const fetchMembers = async (req,res) =>{
+    try {
+        const gymId = req.gym.gymId
+        const page = Number(req.query.page)||1
+        const limit = Number(req.query.limit)||10
+
+        const skip = (page-1)*limit
+
+        //total members 
+        const totalMembers = await membersModel.countDocuments({
+            gym:gymId
+        })
+        //now we will find the members based on the parameters
+        const members = await membersModel.find({gymId})
+            .populate("membership.plan","name")
+            .sort({createdAt:-1})
+            .skip(skip)
+            .limit(limit)
+        
+        appAssert(members,"Doesnt'found Any Member")
+
+        return res.json({
+            success:true,
+            members,
+            pagination:{
+                totalMembers,
+                totalPages : Math.ceil(totalMembers/limit),
+                pageSize :limit,
+                currentPage:page
+            },
+        })
+    } catch (error) {
+        if (error instanceof AppError) {
+                    return res.json({success: false, message:error.message});
+                }
+                console.error(error);
+    }
+}
 
 
