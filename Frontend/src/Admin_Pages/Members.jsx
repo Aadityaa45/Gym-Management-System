@@ -1,26 +1,43 @@
 import React, { useState, useEffect } from "react";
+import toast from "react-hot-toast";
 
 // in this we have implemented the concept of pagination that means we will only got those data which we exactly want not every data
 
 const Members = () => {
-  const usersData = Array.from({ length: 100 }, (_, i) => ({
-    _id: i + 1,
-    name: `User ${i + 1}`,
-    phone: `98765${String(i).padStart(5, "0")}`,
-    plan: ["Basic Plan", "Standard Plan", "Premium Plan"][i % 3],
-    joiningDate: "30 May 2026",
-    status: i % 2 === 0 ? "Active" : "Expired",
-  }));
+  const [currentPage,setCurrentPage] = useState(1)
+  const [members,setMembers] = useState([])
+  const [totalPages,setTotalPages] = useState(1)
 
-  const [users, setUsers] = useState([]);
-  const [currentPage, setCurrentPage] = useState(0);
+  const fetchMembers = async () =>{
+    try {
+      const backendUrl = import.meta.env.VITE_BACKEND_URL;
+      const {response} = await axios.get(`
+        ${backendUrl}/api/admin/members/fetch-member?page=${currentPage}&limit=10`,
+        {
+          withCredentials:true
+        }
+      )
 
-  const Page_Size = 10;
-  const total_elements = users.length;
-  const total_pages = Math.ceil(total_elements / Page_Size);
+      if(response.data.success){
+        setMembers(response.members)
+        setTotalPages(response.pagination.totalPages)
+      }
+    } catch (error) {
+      toast.error("Something went Wrong")
+    }
+  }
+  useEffect(()=>{
+    fetchMembers()
+  },[currentPage])
+  // const [users, setUsers] = useState([]);
+  // const [currentPage, setCurrentPage] = useState(0);
 
-  const start = currentPage * Page_Size;
-  const end = start + Page_Size;
+  // const Page_Size = 10;
+  // const total_elements = users.length;
+  // const total_pages = Math.ceil(total_elements / Page_Size);
+
+  // const start = currentPage * Page_Size;
+  // const end = start + Page_Size;
 
   useEffect(() => {
     setUsers(usersData);
@@ -194,9 +211,10 @@ return (
         </div>
 
         {/* Rows */}
-        {users.slice(start, end).map((user) => (
+        {/* {users.slice(start, end).map((user) => ( */}
+        {members.map((member)=>(
           <div
-            key={user._id}
+            key={member._id}
             className="
               grid
               grid-cols-[2fr_1.5fr_1.5fr_1.5fr_1fr_1fr]
@@ -245,7 +263,7 @@ return (
 
         {/* Pagination */}
         <div className="flex justify-center items-center gap-2 py-6 bg-[#041b35]">
-          {[...Array(total_pages).keys()].map((page) => (
+          {[...Array(totalPages).keys()].map((page) => (
             <button
               key={page}
               onClick={() => setCurrentPage(page)}
