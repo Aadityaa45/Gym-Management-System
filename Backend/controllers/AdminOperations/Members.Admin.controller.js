@@ -198,3 +198,6 @@ export const verifyRegistrationOtp = async (req,res) =>{
                 console.error(error);
     }
 }
+
+
+
