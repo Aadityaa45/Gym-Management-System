@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import toast from "react-hot-toast";
+import axios from "axios"
 
 // in this we have implemented the concept of pagination that means we will only got those data which we exactly want not every data
 
@@ -7,20 +8,20 @@ const Members = () => {
   const [currentPage,setCurrentPage] = useState(1)
   const [members,setMembers] = useState([])
   const [totalPages,setTotalPages] = useState(1)
+  const [search,setSearch]=useState("")
 
   const fetchMembers = async () =>{
     try {
       const backendUrl = import.meta.env.VITE_BACKEND_URL;
-      const {response} = await axios.get(`
-        ${backendUrl}/api/admin/members/fetch-member?page=${currentPage}&limit=10`,
+      const response = await axios.get(`${backendUrl}/api/admin/members/fetch-member?page=${currentPage}&limit=10&search=${search}`,
         {
           withCredentials:true
         }
       )
 
       if(response.data.success){
-        setMembers(response.members)
-        setTotalPages(response.pagination.totalPages)
+        setMembers(response.data.members)
+        setTotalPages(response.data.pagination.totalPages)
       }
     } catch (error) {
       toast.error("Something went Wrong")
@@ -39,41 +40,42 @@ const Members = () => {
   // const start = currentPage * Page_Size;
   // const end = start + Page_Size;
 
-  useEffect(() => {
-    setUsers(usersData);
-  }, []);
+  // useEffect(() => {
+  //   setUsers(usersData);
+  // }, []);
 
   // Search States
   //here till the debouncing logic we are encountering that for the empty string also the api call se beingh made to resolve this we will implement the cache using the local state variables
-  const [inputValue, setInputValue] = useState("");
-  const [searchResultPopup, setSearchResultPopUp] = useState(false);
-  const [results, setResults] = useState([]);
-  const [cache,setCache] = useState({})
+  // const [inputValue, setInputValue] = useState("");
+  // const [searchResultPopup, setSearchResultPopUp] = useState(false);
+  // const [results, setResults] = useState([]);
+  // const [cache,setCache] = useState({})
 
   const InputValueChangeHandler = (e) => {
-    setInputValue(e.target.value);
+    setSearch(e.target.value);
+    setCurrentPage(1)
   };
 
-  const SearchUserHandler = () => {
-    if(cache[inputValue]){
-        setResults(cache[inputValue])
-        console.log("Cache Detetcted")
-        return
-    }
-    console.log("API Call For:", inputValue);
+  // const SearchUserHandler = () => {
+  //   if(cache[inputValue]){
+  //       setResults(cache[inputValue])
+  //       console.log("Cache Detetcted")
+  //       return
+  //   }
+  //   console.log("API Call For:", inputValue);
 
-    if (!inputValue.trim()) {
-      setResults([]);
-      return;
-    }
+  //   if (!inputValue.trim()) {
+  //     setResults([]);
+  //     return;
+  //   }
 
-    const filteredUsers = users.filter((item) =>
-      item.name.toLowerCase().includes(inputValue.toLowerCase())
-    );
+  //   const filteredUsers = users.filter((item) =>
+  //     item.name.toLowerCase().includes(inputValue.toLowerCase())
+  //   );
 
-    setResults(filteredUsers);
-    setCache((prev)=>({...prev,[inputValue]:results})) //yaha hamne previous satet ko update kiya h 
-  };
+  //   setResults(filteredUsers);
+  //   setCache((prev)=>({...prev,[inputValue]:results})) //yaha hamne previous satet ko update kiya h 
+  // };
 
   // Debouncing
   useEffect(() => {
@@ -84,7 +86,7 @@ const Members = () => {
     return () => {
       clearTimeout(timer);
     };
-  }, [inputValue, users]);
+  }, [search,currentPage]);
 
 return (
   <div className="w-full py-8">
@@ -97,10 +99,10 @@ return (
           type="search"
           value={inputValue}
           onChange={InputValueChangeHandler}
-          onFocus={() => setSearchResultPopUp(true)}
-          onBlur={() =>
-            setTimeout(() => setSearchResultPopUp(false), 200)
-          }
+          // onFocus={() => setSearchResultPopUp(true)}
+          // onBlur={() =>
+          //   setTimeout(() => setSearchResultPopUp(false), 200)
+          // }
           placeholder="Search members by name..."
           className="
             w-full
@@ -139,7 +141,6 @@ return (
         </svg>
       </div>
 
-      {/* Search Recommendations Popup */}
       {searchResultPopup && (
         <div
           className="
@@ -229,17 +230,17 @@ return (
           >
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white font-bold">
-                {user.name.charAt(0)}
+                {member.fullname.charAt(0)}
               </div>
 
-              <span>{user.name}</span>
+              <span>{member.fullName}</span>
             </div>
 
-            <div>{user.phone}</div>
+            <div>{member.phone}</div>
 
-            <div>{user.plan}</div>
+            <div>{member.membership.plan}</div>
 
-            <div>{user.joiningDate}</div>
+            <div>{member.joiningDate}</div>
 
             <div>
               <span
@@ -249,7 +250,7 @@ return (
                     : "bg-red-200 text-red-700"
                 }`}
               >
-                {user.status}
+                {member.status}
               </span>
             </div>
 
@@ -266,9 +267,9 @@ return (
           {[...Array(totalPages).keys()].map((page) => (
             <button
               key={page}
-              onClick={() => setCurrentPage(page)}
+              onClick={() => setCurrentPage(page+1)}
               className={`w-10 h-10 rounded-lg font-medium transition-all duration-200 ${
-                currentPage === page
+                currentPage === page+1
                   ? "bg-red-500 text-white shadow-lg shadow-red-500/30"
                   : "bg-[#0a2748] text-gray-300 hover:bg-[#123963] hover:text-white"
               }`}
