@@ -9,6 +9,6 @@ const memberRouter = express.Router()
 
 memberRouter.post("/register-member",gymAuth,registerMember)
 memberRouter.post("/verify-otp",gymAuth,verifyRegistrationOtp)
-memberRouter.get("/fetch-members?page=1&limit=10",gymAuth,fetchMembers)
+memberRouter.get("/fetch-members",gymAuth,fetchMembers)
 
 export default memberRouter

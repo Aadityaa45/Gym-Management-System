@@ -30,7 +30,7 @@ const membersSchema = new mongoose.Schema({
     },
 
     membership : { 
-        plan : { type:mongoose.Types.ObjectId, ref: "membershipplans" },
+        plan : { type:mongoose.Types.ObjectId, ref: "membershipPlan" },
         planStartDate : { type:Date },
         planEndDate : { type:Date }
     },

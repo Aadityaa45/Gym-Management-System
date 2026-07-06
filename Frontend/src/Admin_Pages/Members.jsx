@@ -13,7 +13,7 @@ const Members = () => {
   const fetchMembers = async () =>{
     try {
       const backendUrl = import.meta.env.VITE_BACKEND_URL;
-      const response = await axios.get(`${backendUrl}/api/admin/members/fetch-member?page=${currentPage}&limit=10&search=${search}`,
+      const response = await axios.get(`${backendUrl}/api/admin/members/fetch-members?page=${currentPage}&limit=10&search=${search}`,
         {
           withCredentials:true
         }
@@ -27,9 +27,9 @@ const Members = () => {
       toast.error("Something went Wrong")
     }
   }
-  useEffect(()=>{
-    fetchMembers()
-  },[currentPage])
+  // useEffect(()=>{
+  //   fetchMembers()
+  // },[currentPage])
   // const [users, setUsers] = useState([]);
   // const [currentPage, setCurrentPage] = useState(0);
 
@@ -80,7 +80,7 @@ const Members = () => {
   // Debouncing
   useEffect(() => {
     const timer = setTimeout(() => {
-      SearchUserHandler();
+      fetchMembers();
     }, 500);
 
     return () => {
@@ -97,7 +97,7 @@ return (
       <div className="relative">
         <input
           type="search"
-          value={inputValue}
+          value={search}
           onChange={InputValueChangeHandler}
           // onFocus={() => setSearchResultPopUp(true)}
           // onBlur={() =>
@@ -141,7 +141,7 @@ return (
         </svg>
       </div>
 
-      {searchResultPopup && (
+      {/* {searchResultPopup && (
         <div
           className="
             absolute
@@ -194,8 +194,71 @@ return (
             </div>
           )}
         </div>
-      )}
+      )} */}
     </div>
+
+    {/* Filters */}
+<div className="w-[90%] mx-auto mt-10 mb-5 flex flex-wrap items-center gap-5">
+
+  {/* Status */}
+  <select
+    className="
+      bg-[#08213d]
+      border
+      border-gray-700
+      rounded-lg
+      px-4
+      py-3
+      text-white
+      outline-none
+      focus:border-red-500
+    "
+  >
+    <option value="">All Status</option>
+    <option value="active">Active</option>
+    <option value="expired">Expired</option>
+  </select>
+
+  {/* Plans */}
+  <select
+    className="
+      bg-[#08213d]
+      border
+      border-gray-700
+      rounded-lg
+      px-4
+      py-3
+      text-white
+      outline-none
+      focus:border-red-500
+    "
+  >
+    <option value="">All Plans</option>
+
+    {/* Dynamic Plans */}
+    {/* {membershipPlans.map(plan => (
+      <option key={plan._id} value={plan._id}>
+        {plan.name}
+      </option>
+    ))} */}
+
+    {/* Temporary */}
+    <option>Monthly</option>
+    <option>Quarterly</option>
+    <option>Half Yearly</option>
+    <option>Yearly</option>
+  </select>
+
+  {/* Payment Left */}
+  <label className="flex items-center gap-2 text-white cursor-pointer">
+    <input
+      type="checkbox"
+      className="accent-red-500 w-4 h-4"
+    />
+    <span>Payment Left</span>
+  </label>
+
+</div>
 
     {/* Table Section */}
     <div className="mt-20">
@@ -230,7 +293,7 @@ return (
           >
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white font-bold">
-                {member.fullname.charAt(0)}
+                {member.fullName.charAt(0)}
               </div>
 
               <span>{member.fullName}</span>
@@ -238,14 +301,14 @@ return (
 
             <div>{member.phone}</div>
 
-            <div>{member.membership.plan}</div>
+            <div>{member.membership?.plan?.name}</div>
 
-            <div>{member.joiningDate}</div>
+            <div>{member.joiningdate}</div>
 
             <div>
               <span
                 className={`px-4 py-1 rounded-md font-medium ${
-                  user.status === "Active"
+                  member.status === "Active"
                     ? "bg-green-200 text-green-700"
                     : "bg-red-200 text-red-700"
                 }`}
