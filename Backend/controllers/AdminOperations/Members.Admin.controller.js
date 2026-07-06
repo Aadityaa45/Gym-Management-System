@@ -221,21 +221,32 @@ export const verifyRegistrationOtp = async (req,res) =>{
 }
 
 
-//-----------------------------------------------------CONTROLLER FOR FETCHING MEMBERS WITH PAGINATION---------------------------------
+//-----------------------------------------------------CONTROLLER FOR FETCHING MEMBERS WITH PAGINATION AS WELL AS SEARCH WITH DEBOUNCING---------------------------------
 export const fetchMembers = async (req,res) =>{
     try {
         const gymId = req.gym.gymId
         const page = Number(req.query.page)||1
         const limit = Number(req.query.limit)||10
+        const search = req.query.search?.trim()
 
         const skip = (page-1)*limit
 
-        //total members 
-        const totalMembers = await membersModel.countDocuments({
+        let filter = {
             gym:gymId
-        })
+        }
+
+        //if the search parameter exist in the url
+        if(search){
+            filter.fullName={
+                $regex: search,
+                $options:"i"
+            }
+        }
+
+        //total members 
+        const totalMembers = await membersModel.countDocuments(filter)
         //now we will find the members based on the parameters
-        const members = await membersModel.find({gymId})
+        const members = await membersModel.find(filter)
             .populate("membership.plan","name")
             .sort({createdAt:-1})
             .skip(skip)
