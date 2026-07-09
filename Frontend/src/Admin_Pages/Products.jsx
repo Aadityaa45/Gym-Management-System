@@ -1,7 +1,13 @@
-import React from "react";
-import { products } from "../assets/hardcoded_content.js/dummyProductsData";
-import ProductCard from "../components/AdminComponents/ProductCards";
+import React, { useEffect } from "react";
+import { products as DummyProducts } from "../assets/hardcoded_content.js/dummyProductsData";
+import ProductCard from "../components/AdminComponents/ProductCards"
+import { useState } from "react";
 const Products = () =>{
+  const [products,setProducts] = useState([])
+  useEffect(()=>{
+    setProducts(DummyProducts)
+    console.log(products)
+  },[])
     return(
         <div>
             {/* search bar section */}
@@ -45,6 +51,32 @@ const Products = () =>{
           />
         </svg>
             </div>
+
+            {/* products section  */}
+            <div className="mt-10 w-[95%] mx-auto">
+  <div
+    className="
+      w-full
+    mt-10
+    grid
+    grid-cols-1
+    sm:grid-cols-2
+    lg:grid-cols-3
+    xl:grid-cols-4
+    2xl:grid-cols-5
+    gap-6
+    "
+  >
+    {products.map((product) => (
+      <ProductCard
+        key={product._id}
+        product={product}
+        onSell={(product) => console.log("Sell Product", product)}
+        onEdit={(product) => console.log("Edit Product", product)}
+      />
+    ))}
+  </div>
+</div>
         </div>
     )
 }

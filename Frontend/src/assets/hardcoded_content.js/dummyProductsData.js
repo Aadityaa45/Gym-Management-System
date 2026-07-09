@@ -1,102 +1,122 @@
 export const products = [
   {
-    id: 1,
-    category: "Whey Protein",
-    brand: "Optimum Nutrition",
+    _id: "1",
     name: "Gold Standard 100% Whey",
+    brand: "Optimum Nutrition",
+    category: "Whey Protein",
+    image:
+      "https://cdn.shopify.com/s/files/1/0866/7664/products/MASSGAINERVANILLAFINAL_800x600.png?v=1648746522",
     price: 4499,
     quantity: 28,
-    image:
-      "https://images.unsplash.com/photo-1593095948071-474c5cc2989d"
   },
   {
-    id: 2,
-    category: "Mass Gainer",
-    brand: "Optimum Nutrition",
+    _id: "2",
     name: "Serious Mass Gainer",
+    brand: "Optimum Nutrition",
+    category: "Mass Gainer",
+    image:
+      "https://cdn.shopify.com/s/files/1/0866/7664/products/MASSGAINERVANILLAFINAL_800x600.png?v=1648746522",
     price: 6299,
     quantity: 18,
-    image:
-      "https://images.unsplash.com/photo-1622484212850-eb596d769edc"
   },
   {
-    id: 3,
-    category: "Whey Protein",
+    _id: "3",
+    name: "Elite 100% Whey",
     brand: "Dymatize",
-    name: "Elite 100% Whey Protein",
+    category: "Whey Protein",
+    image:
+      "https://cdn.shopify.com/s/files/1/0269/5551/3900/products/elite100whey.jpg",
     price: 5499,
     quantity: 32,
-    image:
-      "https://images.unsplash.com/photo-1607619056574-7b8d3ee536b2"
   },
   {
-    id: 4,
-    category: "Plant Protein",
-    brand: "MusclePharm",
+    _id: "4",
     name: "Combat Plant Protein",
+    brand: "MusclePharm",
+    category: "Plant Protein",
+    image:
+      "https://cdn.shopify.com/s/files/1/0004/8132/9204/products/combatplantprotein.png",
     price: 3299,
     quantity: 15,
-    image:
-      "https://images.unsplash.com/photo-1622484212370-98f9e1fbc5c5"
   },
   {
-    id: 5,
-    category: "Pre-Workout",
+    _id: "5",
+    name: "C4 Ultimate Pre Workout",
     brand: "Cellucor",
-    name: "C4 Pre Workout",
+    category: "Pre Workout",
+    image:
+      "https://cdn.shopify.com/s/files/1/0269/5551/3900/products/c4ultimate.jpg",
     price: 2199,
     quantity: 22,
-    image:
-      "https://images.unsplash.com/photo-1585238342024-78d387f4a707"
   },
   {
-    id: 6,
-    category: "BCAA",
+    _id: "6",
+    name: "BCAA 5000 Powder",
     brand: "Optimum Nutrition",
-    name: "BCAA 5000",
+    category: "BCAA",
+    image:
+      "https://cdn.shopify.com/s/files/1/0269/5551/3900/products/bcaa5000.jpg",
     price: 1899,
     quantity: 40,
-    image:
-      "https://images.unsplash.com/photo-1607619056574-7b8d3ee536b2"
   },
   {
-    id: 7,
-    category: "Creatine",
-    brand: "Optimum Nutrition",
+    _id: "7",
     name: "Micronized Creatine",
+    brand: "Optimum Nutrition",
+    category: "Creatine",
+    image:
+      "https://cdn.shopify.com/s/files/1/0269/5551/3900/products/creatine.jpg",
     price: 1299,
     quantity: 35,
-    image:
-      "https://images.unsplash.com/photo-1622484212850-eb596d769edc"
   },
   {
-    id: 8,
-    category: "Glutamine",
-    brand: "MyProtein",
+    _id: "8",
     name: "L-Glutamine Powder",
+    brand: "MyProtein",
+    category: "Glutamine",
+    image:
+      "https://cdn.shopify.com/s/files/1/0269/5551/3900/products/glutamine.jpg",
     price: 999,
     quantity: 25,
-    image:
-      "https://images.unsplash.com/photo-1593095948071-474c5cc2989d"
   },
   {
-    id: 9,
-    category: "Protein Bar",
+    _id: "9",
+    name: "Quest Protein Bar (Box)",
     brand: "Quest Nutrition",
-    name: "Protein Bar Box",
+    category: "Protein Bar",
+    image:
+      "https://cdn.shopify.com/s/files/1/0269/5551/3900/products/questbar.jpg",
     price: 2499,
     quantity: 50,
-    image:
-      "https://images.unsplash.com/photo-1579722821273-0f6c9d44362f"
   },
   {
-    id: 10,
-    category: "Fish Oil",
-    brand: "Optimum Nutrition",
+    _id: "10",
     name: "Fish Oil 1000mg",
+    brand: "Optimum Nutrition",
+    category: "Fish Oil",
+    image:
+      "https://cdn.shopify.com/s/files/1/0269/5551/3900/products/fishoil.jpg",
     price: 899,
     quantity: 30,
+  },
+  {
+    _id: "11",
+    name: "NitroTech Whey Gold",
+    brand: "MuscleTech",
+    category: "Whey Protein",
     image:
-      "https://images.unsplash.com/photo-1584017911766-d451b3d0e843"
-  }
+      "https://cdn.shopify.com/s/files/1/0269/5551/3900/products/nitrotech.jpg",
+    price: 4999,
+    quantity: 8,
+  },
+  {
+    _id: "12",
+    name: "ISO100 Hydrolyzed Whey",
+    brand: "Dymatize",
+    category: "Isolate",
+    image:
+      "https://cdn.shopify.com/s/files/1/0269/5551/3900/products/iso100.jpg",
+    price: 6899,
+    quantity: 0,
+  },
 ];
