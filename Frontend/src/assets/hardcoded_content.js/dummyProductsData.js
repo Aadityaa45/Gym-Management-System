@@ -25,7 +25,7 @@ export const products = [
     brand: "Dymatize",
     category: "Whey Protein",
     image:
-      "https://cdn.shopify.com/s/files/1/0269/5551/3900/products/elite100whey.jpg",
+      "https://cdn.shopify.com/s/files/1/0866/7664/products/MASSGAINERVANILLAFINAL_800x600.png?v=1648746522",
     price: 5499,
     quantity: 32,
   },
@@ -35,7 +35,7 @@ export const products = [
     brand: "MusclePharm",
     category: "Plant Protein",
     image:
-      "https://cdn.shopify.com/s/files/1/0004/8132/9204/products/combatplantprotein.png",
+      "https://cdn.shopify.com/s/files/1/0866/7664/products/MASSGAINERVANILLAFINAL_800x600.png?v=1648746522",
     price: 3299,
     quantity: 15,
   },
@@ -45,7 +45,7 @@ export const products = [
     brand: "Cellucor",
     category: "Pre Workout",
     image:
-      "https://cdn.shopify.com/s/files/1/0269/5551/3900/products/c4ultimate.jpg",
+      "https://cdn.shopify.com/s/files/1/0866/7664/products/MASSGAINERVANILLAFINAL_800x600.png?v=1648746522",
     price: 2199,
     quantity: 22,
   },
@@ -55,7 +55,7 @@ export const products = [
     brand: "Optimum Nutrition",
     category: "BCAA",
     image:
-      "https://cdn.shopify.com/s/files/1/0269/5551/3900/products/bcaa5000.jpg",
+      "https://cdn.shopify.com/s/files/1/0866/7664/products/MASSGAINERVANILLAFINAL_800x600.png?v=1648746522",
     price: 1899,
     quantity: 40,
   },
