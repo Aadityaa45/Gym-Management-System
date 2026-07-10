@@ -4,6 +4,18 @@ import ProductCard from "../components/AdminComponents/ProductCards"
 import { useState } from "react";
 const Products = () =>{
   const [products,setProducts] = useState([])
+  const [currentPage,setCurrentPage] = useState(1)
+  // const [totalPages,setTotalPages] = useState(1)
+
+  const page_size = 10
+  const total_elements = products.length
+  const total_pages = Math.ceil(total_elements/page_size)
+  const start = (currentPage-1) * page_size
+  const end = start + page_size
+
+  const inputValueHandler = (e) =>{
+    
+  }
   useEffect(()=>{
     setProducts(DummyProducts)
     console.log(products)
@@ -67,7 +79,7 @@ const Products = () =>{
     gap-8
     "
   >
-    {products.map((product) => (
+    {products.slice(start,end).map((product) => (
       <ProductCard
         key={product._id}
         product={product}
@@ -77,6 +89,22 @@ const Products = () =>{
       />
     ))}
   </div>
+  <div className="flex justify-center items-center gap-2 py-6 bg-[#041b35]">
+          {[...Array(total_pages).keys()].map((page) => (
+            <button
+              key={page}
+              onClick={() => setCurrentPage(page+1)}
+              className={`w-10 h-10 rounded-lg font-medium transition-all duration-200 ${
+                currentPage === page+1
+                  ? "bg-red-500 text-white shadow-lg shadow-red-500/30"
+                  : "bg-[#0a2748] text-gray-300 hover:bg-[#123963] hover:text-white"
+              }`}
+            >
+              {page + 1}
+            </button>
+          ))}
+        </div>
+
 </div>
         </div>
     )

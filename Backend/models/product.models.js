@@ -10,6 +10,7 @@ const productSchema = new mongoose.Schema({
     status: { type: String, enum: statuses, default: true },
     quantity: { type: Number, required: true },
     price: { type: Number, default:0 },
+    wholseSalePrice:{type:Number,required:true},
     category : { type: String, required:true },
     image : { type: String },
     priorityOrder : {type:Number, default:0 }
