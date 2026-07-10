@@ -22,7 +22,8 @@ const app = express()
 
 
 const AllowedOrigins = [
-  "http://localhost:5173"
+  "http://localhost:5173",
+  "http://localhost:5174"
 ];
 
 const corsOptions = {

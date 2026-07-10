@@ -78,7 +78,7 @@ export const addNewProduct = async (req,res) =>{
         console.log(20)
 
         //returning reponse before as sending email lead to 1-3 seconds delay
-        return res.json({
+        res.json({
         success:true,
         message:"New Product Added Successfully!!"
     })
