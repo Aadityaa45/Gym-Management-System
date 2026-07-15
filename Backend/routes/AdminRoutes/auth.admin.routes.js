@@ -7,4 +7,5 @@ const adminAuthRoutes = express.Router()
 adminAuthRoutes.post('/register',registerGym)
 adminAuthRoutes.post('/login',loginGym)
 
+
 export default adminAuthRoutes

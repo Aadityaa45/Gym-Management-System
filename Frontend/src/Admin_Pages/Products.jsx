@@ -15,6 +15,16 @@ const Products = () =>{
   const [currentPage,setCurrentPage] = useState(1)
   const [cart,setCart] = useState([])
   const [cartOpen,setCartOpen] = useState(false)
+  const [openEditPopUp,setEditPopUp] = useState(false)
+  const [editProductData,setEditProductData] = useState({
+    productName:"",
+    productPrice:"",
+    productCategory:"",
+    productImage:"",
+    productDescription:"",
+    productPriorityOrder:"",
+  })
+  const [selectedProduct,setSelectedProduct] = useState(null)
   // const [totalPages,setTotalPages] = useState(1)
 
   const page_size = 10
@@ -22,6 +32,15 @@ const Products = () =>{
   const total_pages = Math.ceil(total_elements/page_size)
   const start = (currentPage-1) * page_size
   const end = start + page_size
+
+  const onEditChanegHandler = (e) =>{
+    const {name,value} = e.target
+
+    setEditProductData({
+      ...editProductData,
+      [name]:value
+    })
+  }
 
   //here, we will create a functionality to add the selected products in the cart and alltogether we can generate the invoice 
   const addProductToCart = (product) =>{
@@ -62,7 +81,6 @@ const Products = () =>{
     ];
     })
   }
-
   
   useEffect(()=>{
     setProducts(DummyProducts)
@@ -212,7 +230,18 @@ const Products = () =>{
         key={product._id}
         product={product}
         onSell={() => addProductToCart(product)}
-        onEdit={(product) => console.log("Edit Product", product)}
+        onEdit={() => {
+          setEditProductData({
+            productName:product.name,
+            productCategory:product.category,
+            productImage:product.image,
+            productPrice:product.price,
+            productDescription:product.description,
+            productPriorityOrder:product.priorityOrder
+          })
+          setSelectedProduct(product)
+          setEditPopUp(true)
+        }}
         onRestock={(product)=>console.log("restocking")}
       />
     ))}
@@ -534,6 +563,336 @@ cartOpen && (
 
 )
 
+}
+
+      {/* edit popup section */}
+      {
+openEditPopUp && (
+
+<>
+    {/* Overlay */}
+
+    <div
+        onClick={() => setEditPopUp(false)}
+        className="
+        fixed
+        inset-0
+        bg-black/70
+        backdrop-blur-sm
+        z-[60]
+    "
+    />
+
+    {/* Popup */}
+
+    <div
+        className="
+        fixed
+        left-1/2
+        top-1/2
+        -translate-x-1/2
+        -translate-y-1/2
+        w-[900px]
+        bg-[#091729]
+        border
+        border-[#1f3554]
+        rounded-3xl
+        overflow-hidden
+        shadow-[0_25px_70px_rgba(0,0,0,.5)]
+        z-[70]
+        animate-[popup_.25s_ease]
+    "
+    >
+
+        {/* Header */}
+
+        <div className="px-8 py-6 border-b border-[#203a5d] flex justify-between items-center">
+
+            <div>
+
+                <h2 className="text-2xl font-bold text-white">
+                    Edit Product
+                </h2>
+
+                <p className="text-gray-400 mt-1">
+                    Update the product information.
+                </p>
+
+            </div>
+
+            <button
+                onClick={() => setEditPopUp(false)}
+                className="
+                w-11
+                h-11
+                rounded-xl
+                bg-[#132842]
+                hover:bg-red-500
+                transition
+                flex
+                items-center
+                justify-center
+                "
+            >
+                <X size={20}/>
+            </button>
+
+        </div>
+
+        {/* Body */}
+
+        <div className="grid grid-cols-2 gap-8 p-8">
+
+            {/* Left */}
+
+            <div className="space-y-5">
+
+                <div>
+
+                    <label className="text-gray-400 text-sm">
+                        Product Name
+                    </label>
+
+                    <input
+                        name="productName"
+                        value={editProductData.name}
+                        onChange={onEditChanegHandler}
+                        className="input mt-2"
+                        placeholder="Protein Powder"
+                    />
+
+                </div>
+
+                <div>
+
+                    <label className="text-gray-400 text-sm">
+                        Category
+                    </label>
+
+                    <input
+                        name="productCategory"
+                        value={editProductData.productCategory}
+                        onChange={onEditChanegHandler}
+                        className="input mt-2"
+                        placeholder="Supplements"
+                    />
+
+                </div>
+
+                <div>
+
+                    <label className="text-gray-400 text-sm">
+                        Description
+                    </label>
+
+                    <textarea
+                        name="productDescription"
+                        value={editProductData.productDescription}
+                        onChange={onEditChanegHandler}
+                        rows={5}
+                        className="input mt-2 resize-none"
+                        placeholder="Enter description..."
+                    />
+
+                </div>
+
+                <div>
+
+                    <label className="text-gray-400 text-sm">
+                        Image URL
+                    </label>
+
+                    <input
+                        name="productImage"
+                        value={editProductData.productImage}
+                        onChange={onEditChanegHandler}
+                        className="input mt-2"
+                        placeholder="https://..."
+                    />
+
+                </div>
+
+            </div>
+
+            {/* Right */}
+
+            <div className="space-y-5">
+
+                <div className="grid grid-cols-2 gap-4">
+
+                    <div>
+
+                        <label className="text-gray-400 text-sm">
+                            Quantity
+                        </label>
+
+                        <input
+                            type="number"
+                            className="input mt-2"
+                        />
+
+                    </div>
+
+                    <div>
+
+                        <label className="text-gray-400 text-sm">
+                            Status
+                        </label>
+
+                        <select className="input mt-2">
+
+                            <option>
+                                Available
+                            </option>
+
+                            <option>
+                                Coming Soon
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+
+                    <div>
+
+                        <label className="text-gray-400 text-sm">
+                            Selling Price
+                        </label>
+
+                        <input
+                            type="number"
+                            className="input mt-2"
+                        />
+
+                    </div>
+
+                    <div>
+
+                        <label className="text-gray-400 text-sm">
+                            Wholesale Price
+                        </label>
+
+                        <input
+                            type="number"
+                            className="input mt-2"
+                        />
+
+                    </div>
+
+                </div>
+
+                <div>
+
+                    <label className="text-gray-400 text-sm">
+                        Priority Order
+                    </label>
+
+                    <input
+                        type="number"
+                        className="input mt-2"
+                    />
+
+                </div>
+
+                {/* Preview */}
+
+                <div className="mt-8 bg-[#10243d] rounded-2xl border border-[#294872] p-5">
+
+                    <div className="h-52 rounded-xl bg-[#132842] flex justify-center items-center">
+
+                        <span className="text-gray-500">
+                            Product Preview
+                        </span>
+
+                    </div>
+
+                    <h3 className="text-xl font-semibold mt-5 text-white">
+                        Product Name
+                    </h3>
+
+                    <p className="text-violet-400 text-3xl font-bold mt-3">
+                        ₹999
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        {/* Footer */}
+
+        <div className="border-t border-[#203a5d] px-8 py-6 flex justify-end gap-4">
+
+            <button
+                onClick={() => setEditPopUp(false)}
+                className="
+                px-7
+                py-3
+                rounded-xl
+                bg-[#132842]
+                hover:bg-[#1d3557]
+                transition
+                "
+            >
+                Cancel
+            </button>
+
+            <button
+                className="
+                px-8
+                py-3
+                rounded-xl
+                bg-violet-600
+                hover:bg-violet-500
+                transition
+                text-white
+                font-semibold
+                "
+            >
+                Save Changes
+            </button>
+
+        </div>
+
+    </div>
+
+    <style>{`
+        .input{
+            width:100%;
+            background:#0d2036;
+            border:1px solid #294872;
+            border-radius:14px;
+            padding:14px 18px;
+            color:white;
+            outline:none;
+            transition:.25s;
+        }
+
+        .input:focus{
+            border-color:#8b5cf6;
+            box-shadow:0 0 0 3px rgba(139,92,246,.2);
+        }
+
+        @keyframes popup{
+            from{
+                opacity:0;
+                transform:translate(-50%,-45%) scale(.95);
+            }
+            to{
+                opacity:1;
+                transform:translate(-50%,-50%) scale(1);
+            }
+        }
+    `}</style>
+
+</>
+
+)
 }
         </div>
     )
