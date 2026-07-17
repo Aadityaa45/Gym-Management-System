@@ -232,6 +232,7 @@ export const fetchMembers = async (req,res) =>{
         const search = req.query.search?.trim()
         const memberShipPlan = req.query.plan
         const status = req.query.status
+        const paymentStatus = req.query.payment
 
         const skip = (page-1)*limit
 
@@ -255,6 +256,13 @@ export const fetchMembers = async (req,res) =>{
         // Status Filter
         if (status) {
             filter.status = status;
+        }
+
+        //payment filter
+        if(paymentStatus==="true"){
+            filter["fee.remaining"] = {
+                $gt:0
+            }
         }
 
         //total members 

@@ -366,11 +366,12 @@ const Members = () => {
   const [selectedPlan,setSelectedPlan] = useState("")
   const { membershipPlans, setMembershipPlans } = useContext(gymAppContext); //here we fetched the memberhsip plans data now we will use this as dynamic filters
   const [status,setStatus] = useState("")
+  const [paymentLeft,setPaymentLeft] = useState(false)
 
   const fetchMembers = async () =>{
     try {
       const backendUrl = import.meta.env.VITE_BACKEND_URL;
-      const response = await axios.get(`${backendUrl}/api/admin/members/fetch-members?page=${currentPage}&limit=10&search=${search}&plan=${selectedPlan}&status=${status}`,
+      const response = await axios.get(`${backendUrl}/api/admin/members/fetch-members?page=${currentPage}&limit=10&search=${search}&plan=${selectedPlan}&status=${status}&payment=${paymentLeft}`,
         {
           withCredentials:true
         }
@@ -453,7 +454,7 @@ const Members = () => {
     return () => {
       clearTimeout(timer);
     };
-  }, [search,currentPage,status,selectedPlan]);
+  }, [search,currentPage,status,selectedPlan,paymentLeft]);
 
 return (
 <div className="relative">
@@ -622,6 +623,10 @@ return (
                 >
 
                     <input
+                        value={paymentLeft}
+                        onChange={(e)=>{setPaymentLeft(e.target.checked)
+                            setCurrentPage(1)
+                        }}
                         type="checkbox"
                         className="h-5 w-5 accent-red-500"
                     />
