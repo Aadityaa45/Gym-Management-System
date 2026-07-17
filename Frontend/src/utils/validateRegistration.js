@@ -19,10 +19,10 @@ const validateRegistration = (name, value) =>{
             return ""
         
         case "email":
-            if(value.trim()==="" ||
-    !/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(value.trim())){
+            if (value.trim() === "" || !/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(value.trim())) {
+                return "Please enter a valid email";
             }
-            return ""
+            return "";
         
         case "additionalDiscount":
             if(isNaN(Number(value))){

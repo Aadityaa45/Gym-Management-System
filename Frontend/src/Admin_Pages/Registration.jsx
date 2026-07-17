@@ -520,54 +520,80 @@ const Registration = () => {
 
     const generateOTPHanlder = async() =>{
         try {
-            const selectedPlanData = membershipPlans.find(
-    plan => plan._id === registrationData.selectedPlan
-);
+            const newErrors = {
+        firstName: validateRegistration("firstName", registrationData.firstName),
+        lastName: validateRegistration("lastName", registrationData.lastName),
+        address: validateRegistration("address", registrationData.address),
+        email: validateRegistration("email", registrationData.email),
+        additionalDiscount: validateRegistration(
+            "additionalDiscount",
+            registrationData.additionalDiscount
+        ),
+        phoneNumber: validateRegistration(
+            "phoneNumber",
+            registrationData.phoneNumber
+        ),
+        paymentLeft: validateRegistration(
+            "paymentLeft",
+            registrationData.paymentLeft
+        ),
+        registrar: validateRegistration(
+            "registrar",
+            registrationData.registrar
+        ),
+    };
 
-if (!selectedPlanData) {
-    toast.error("Please select a plan");
-    return;
-}
+    setError(newErrors);
 
-const total = selectedPlanData.price;
-
-const remaining = registrationData.fullPaymentRecieved
-    ? 0
-    : Number(registrationData.paymentLeft || 0);
-
-const paid = total - remaining;
-
-const planStartDate = new Date();
-
-const planEndDate = new Date(planStartDate);
-planEndDate.setDate(
-    planEndDate.getDate() + selectedPlanData.durationInDays
-);
-if (remaining > total) {
-    return toast.error("Remaining payment cannot exceed total amount");
-}
-const payload = {
-    fullname: `${registrationData.firstName} ${registrationData.lastName}`,
-    email: registrationData.email.trim(),
-    phone: registrationData.phoneNumber,
-    joiningdate: new Date(),
-    address: registrationData.address.trim(),
-    dob: registrationData.dateOfBirth,
-    registeredBy: registrationData.registrar,
-
-    fee: {
-        total,
-        paid,
-        remaining,
-        discount: Number(registrationData.additionalDiscount) || 0
-    },
-
-    membership: {
-        plan: registrationData.selectedPlan,
-        planStartDate,
-        planEndDate
+    if (Object.values(newErrors).some(err => err !== "")) {
+        toast.error("Please fix validation errors");
+        return;
     }
-};
+            const selectedPlanData = membershipPlans?.find(
+            plan => plan._id === registrationData.selectedPlan
+            );
+
+            if (!selectedPlanData) {
+                toast.error("Please select a plan");
+                return;
+            }
+
+            const total = selectedPlanData.price;
+
+            const remaining = registrationData.fullPaymentRecieved ? 0 : Number(registrationData.paymentLeft || 0);
+
+            const paid = total - remaining;
+
+            const planStartDate = new Date();
+
+            const planEndDate = new Date(planStartDate);
+            planEndDate.setDate(planEndDate.getDate() + selectedPlanData.durationInDays);
+
+            if (remaining > total) {
+                return toast.error("Remaining payment cannot exceed total amount");
+            }
+            const payload = {
+            fullname: `${registrationData.firstName} ${registrationData.lastName}`,
+            email: registrationData.email.trim(),
+            phone: registrationData.phoneNumber,
+            joiningdate: new Date(),
+            address: registrationData.address.trim(),
+            dob: registrationData.dateOfBirth,
+            registeredBy: registrationData.registrar,
+
+            fee: {
+                total,
+                paid,
+                remaining,
+                discount: Number(registrationData.additionalDiscount) || 0
+            },
+
+            membership: {
+                plan: registrationData.selectedPlan,
+                planStartDate,
+                planEndDate
+            }
+        };
 
             //----------------------------------------Now lets call backend-----------------------------------
              const backendUrl = import.meta.env.VITE_BACKEND_URL;
@@ -655,71 +681,71 @@ const payload = {
     }
 
     return (
-<div className="relative min-h-screen overflow-hidden bg-[#050505] text-white">
+        <div className="relative min-h-screen overflow-hidden bg-[#050505] text-white">
 
-    {/* Background */}
+            {/* Background */}
 
-    <div className="absolute inset-0 bg-gradient-to-br from-black via-[#0a0a0a] to-[#070707]" />
+            <div className="absolute inset-0 bg-gradient-to-br from-black via-[#0a0a0a] to-[#070707]" />
 
-    <div className="absolute -left-48 top-0 h-[520px] w-[520px] rounded-full bg-red-600/10 blur-[180px]" />
+            <div className="absolute -left-48 top-0 h-[520px] w-[520px] rounded-full bg-red-600/10 blur-[180px]" />
 
-    <div className="absolute -right-40 bottom-0 h-[520px] w-[520px] rounded-full bg-red-600/10 blur-[180px]" />
+            <div className="absolute -right-40 bottom-0 h-[520px] w-[520px] rounded-full bg-red-600/10 blur-[180px]" />
 
-    <div
-        className="absolute inset-0 opacity-[0.04]"
-        style={{
-            backgroundImage: `
-                linear-gradient(rgba(255,255,255,.12) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255,255,255,.12) 1px, transparent 1px)
-            `,
-            backgroundSize: "60px 60px",
-        }}
-    />
+            <div
+                className="absolute inset-0 opacity-[0.04]"
+                style={{
+                    backgroundImage: `
+                    linear-gradient(rgba(255,255,255,.12) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255,255,255,.12) 1px, transparent 1px)
+                    `,
+                    backgroundSize: "60px 60px",
+                }}
+            />
 
-    <div className="relative z-10 px-8 py-10">
+            <div className="relative z-10 px-8 py-10">
 
-        {/* Page Header */}
+            {/* Page Header */}
 
-        <div className="mb-10">
+            <div className="mb-10">
 
-            <p className="text-sm uppercase tracking-[5px] text-red-500">
+                <p className="text-sm uppercase tracking-[5px] text-red-500">
 
-                Fitness Beast
+                    Fitness Beast
 
-            </p>
+                </p>
 
-            <h1 className="mt-2 text-5xl font-black tracking-wide">
+                <h1 className="mt-2 text-5xl font-black tracking-wide">
 
-                Member Registration
+                    Member Registration
 
-            </h1>
+                </h1>
 
-            <p className="mt-3 max-w-3xl text-gray-400">
+                <p className="mt-3 max-w-3xl text-gray-400">
 
                 Register new gym members, assign membership plans,
                 manage payments and securely verify registrations
                 using OTP authentication.
 
-            </p>
+                </p>
 
-        </div>
+            </div>
 
-        {/* Main Card */}
+            {/* Main Card */}
 
-        <div className="rounded-[32px] border border-white/10 bg-white/5 backdrop-blur-3xl shadow-[0_30px_80px_rgba(0,0,0,.55)]">
+            <div className="rounded-[32px] border border-white/10 bg-white/5 backdrop-blur-3xl shadow-[0_30px_80px_rgba(0,0,0,.55)]">
 
-            <div className="grid gap-10 xl:grid-cols-[2fr_1fr]">
+                <div className="grid gap-10 xl:grid-cols-[2fr_1fr]">
 
-                {/* LEFT SIDE */}
+                    {/* LEFT SIDE */}
 
-                <div className="p-10">
+                    <div className="p-10">
 
-                    <form>
+                        <form>
 
-                {/* Row 1 */}
-                {/* ================= PERSONAL INFORMATION ================= */}
+                    {/* Row 1 */}
+                    {/* ================= PERSONAL INFORMATION ================= */}
 
-<div className="mb-12">
+            <div className="mb-12">
 
     <div className="mb-8 flex items-center gap-3">
 
@@ -765,8 +791,22 @@ const payload = {
                 value={registrationData.firstName}
                 onChange={HandleChange}
                 placeholder="Enter first name"
-                className="h-14 w-full rounded-2xl border border-white/10 bg-black/20 px-5 outline-none backdrop-blur-xl transition-all duration-300 focus:border-red-500"
+                className={`h-14 w-full rounded-2xl px-5 outline-none transition-all
+                ${
+                    error.firstName
+                ? "border border-red-500"
+                : "border border-white/10 focus:border-red-500"
+                }
+                bg-black/20`}
             />
+
+        {
+            error.firstName && (
+        <p className="mt-2 text-sm text-red-400">
+            {error.firstName}
+        </p>
+            )
+    }
 
         </div>
 
@@ -786,8 +826,22 @@ const payload = {
                 value={registrationData.lastName}
                 onChange={HandleChange}
                 placeholder="Enter last name"
-                className="h-14 w-full rounded-2xl border border-white/10 bg-black/20 px-5 outline-none backdrop-blur-xl transition-all duration-300 focus:border-red-500"
+                className={`h-14 w-full rounded-2xl px-5 outline-none transition-all
+                ${
+                    error.lastName
+                ? "border border-red-500"
+                : "border border-white/10 focus:border-red-500"
+                }
+                bg-black/20`}
             />
+
+        {
+            error.lastName && (
+        <p className="mt-2 text-sm text-red-400">
+            {error.lastName}
+        </p>
+            )
+    }
 
         </div>
 
@@ -807,8 +861,22 @@ const payload = {
                 value={registrationData.email}
                 onChange={HandleChange}
                 placeholder="Enter email"
-                className="h-14 w-full rounded-2xl border border-white/10 bg-black/20 px-5 outline-none backdrop-blur-xl transition-all duration-300 focus:border-red-500"
+                className={`h-14 w-full rounded-2xl px-5 outline-none transition-all
+                ${
+                    error.email
+                ? "border border-red-500"
+                : "border border-white/10 focus:border-red-500"
+                }
+                bg-black/20`}
             />
+
+        {
+            error.email && (
+        <p className="mt-2 text-sm text-red-400">
+            {error.email}
+        </p>
+            )
+    }
 
         </div>
 
@@ -828,8 +896,22 @@ const payload = {
                 value={registrationData.phoneNumber}
                 onChange={HandleChange}
                 placeholder="Enter phone number"
-                className="h-14 w-full rounded-2xl border border-white/10 bg-black/20 px-5 outline-none backdrop-blur-xl transition-all duration-300 focus:border-red-500"
+                className={`h-14 w-full rounded-2xl px-5 outline-none transition-all
+                ${
+                    error.phoneNumber
+                ? "border border-red-500"
+                : "border border-white/10 focus:border-red-500"
+                }
+                bg-black/20`}
             />
+
+        {
+            error.phoneNumber && (
+        <p className="mt-2 text-sm text-red-400">
+            {error.phoneNumber}
+        </p>
+            )
+    }
 
         </div>
 
@@ -848,8 +930,22 @@ const payload = {
                 type="date"
                 value={registrationData.dateOfBirth}
                 onChange={HandleChange}
-                className="h-14 w-full rounded-2xl border border-white/10 bg-black/20 px-5 outline-none backdrop-blur-xl transition-all duration-300 focus:border-red-500"
+                className={`h-14 w-full rounded-2xl px-5 outline-none transition-all
+                ${
+                    error.dateOfBirth
+                ? "border border-red-500"
+                : "border border-white/10 focus:border-red-500"
+                }
+                bg-black/20`}
             />
+
+        {
+            error.dateOfBirth && (
+        <p className="mt-2 text-sm text-red-400">
+            {error.dateOfBirth}
+        </p>
+            )
+    }
 
         </div>
 
@@ -869,8 +965,22 @@ const payload = {
                 value={registrationData.address}
                 onChange={HandleChange}
                 placeholder="Enter complete address"
-                className="h-14 w-full rounded-2xl border border-white/10 bg-black/20 px-5 outline-none backdrop-blur-xl transition-all duration-300 focus:border-red-500"
+                className={`h-14 w-full rounded-2xl px-5 outline-none transition-all
+                ${
+                    error.address
+                ? "border border-red-500"
+                : "border border-white/10 focus:border-red-500"
+                }
+                bg-black/20`}
             />
+
+        {
+            error.address && (
+        <p className="mt-2 text-sm text-red-400">
+            {error.address}
+        </p>
+            )
+    }
 
         </div>
 
@@ -999,8 +1109,22 @@ const payload = {
                 value={registrationData.additionalDiscount}
                 onChange={HandleChange}
                 placeholder="0%"
-                className="h-14 w-full rounded-2xl border border-white/10 bg-black/20 px-5 outline-none backdrop-blur-xl focus:border-red-500"
+                className={`h-14 w-full rounded-2xl px-5 outline-none transition-all
+                ${
+                    error.additionalDiscount
+                ? "border border-red-500"
+                : "border border-white/10 focus:border-red-500"
+                }
+                bg-black/20`}
             />
+
+        {
+            error.additionalDiscount && (
+        <p className="mt-2 text-sm text-red-400">
+            {error.additionalDiscount}
+        </p>
+            )
+    }
 
         </div>
 
@@ -1063,8 +1187,22 @@ const payload = {
                     value={registrationData.paymentLeft}
                     onChange={HandleChange}
                     placeholder="Remaining amount"
-                    className="h-14 w-full rounded-2xl border border-white/10 bg-black/20 px-5 outline-none backdrop-blur-xl transition-all duration-300 focus:border-red-500"
-                />
+                    className={`h-14 w-full rounded-2xl px-5 outline-none transition-all
+                ${
+                    error.paymentLeft
+                ? "border border-red-500"
+                : "border border-white/10 focus:border-red-500"
+                }
+                bg-black/20`}
+            />
+
+        {
+            error.paymentLeft && (
+        <p className="mt-2 text-sm text-red-400">
+            {error.paymentLeft}
+        </p>
+            )
+    }
 
             </div>
 
@@ -1084,8 +1222,22 @@ const payload = {
                     value={registrationData.registrar}
                     onChange={HandleChange}
                     placeholder="Registrar name"
-                    className="h-14 w-full rounded-2xl border border-white/10 bg-black/20 px-5 outline-none backdrop-blur-xl transition-all duration-300 focus:border-red-500"
-                />
+                    className={`h-14 w-full rounded-2xl px-5 outline-none transition-all
+                ${
+                    error.registrar
+                ? "border border-red-500"
+                : "border border-white/10 focus:border-red-500"
+                }
+                bg-black/20`}
+            />
+
+        {
+            error.registrar && (
+        <p className="mt-2 text-sm text-red-400">
+            {error.registrar}
+        </p>
+            )
+    }
 
             </div>
 
@@ -1215,7 +1367,7 @@ const payload = {
             <h3 className="mt-2 text-2xl font-bold">
 
                 {
-                    membershipPlans.find(
+                    membershipPlans?.find(
                         p=>p._id===registrationData.selectedPlan
                     )?.name || "No Plan Selected"
                 }
@@ -1237,7 +1389,7 @@ const payload = {
             <h3 className="mt-2 text-4xl font-black text-red-500">
 
                 ₹{
-                    membershipPlans.find(
+                    membershipPlans?.find(
                         p=>p._id===registrationData.selectedPlan
                     )?.price || 0
                 }
@@ -1259,7 +1411,7 @@ const payload = {
             <h3 className="mt-2 text-2xl font-bold">
 
                 {
-                    membershipPlans.find(
+                    membershipPlans?.find(
                         p=>p._id===registrationData.selectedPlan
                     )?.durationInDays || 0
                 } Days

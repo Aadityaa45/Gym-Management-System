@@ -128,6 +128,10 @@ export const registerMember = async (req,res)=>{
         })
         console.log(6)
         appAssert(!isMemberExist,"Member with the same email, phone, or full name already exists!")
+        return res.json({
+            success:true,
+            message:"OTP sent Successfully"
+        })
 
         //--------------------------------------------SAVING THE DATA IN OTP AND SENDING OTP TO USER EMAIL----------------------------
         console.log(7)
@@ -139,10 +143,7 @@ export const registerMember = async (req,res)=>{
         })
         console.log(8)
 
-        return res.json({
-            success:true,
-            message:"OTP sent Successfully"
-        })
+        
 
     }catch(error){
         if (error instanceof AppError) {
@@ -202,14 +203,15 @@ export const verifyRegistrationOtp = async (req,res) =>{
             })
             console.log(6)
 
-            //now we will send the email to the user with his/her credentials and other details such as invoice/bill
-            console.log(7)
-            await EmailService.sendWelcomeEmail(verificationResult.registrationData.fullname, email, password)
-            console.log(8)
             return res.json({
                 success:true,
                 message:"Member Registered Successfully and Email Sent to the User with his/her Credentials"
             })
+            //now we will send the email to the user with his/her credentials and other details such as invoice/bill
+            console.log(7)
+            await EmailService.sendWelcomeEmail(verificationResult.registrationData.fullname, email, password)
+            console.log(8)
+            
         }
 
     }catch(error){
@@ -228,6 +230,8 @@ export const fetchMembers = async (req,res) =>{
         const page = Number(req.query.page)||1
         const limit = Number(req.query.limit)||10
         const search = req.query.search?.trim()
+        const memberShipPlan = req.query.plan
+        const status = req.query.status
 
         const skip = (page-1)*limit
 
@@ -241,6 +245,16 @@ export const fetchMembers = async (req,res) =>{
                 $regex: search,
                 $options:"i"
             }
+        }
+
+        // Membership Plan Filter
+        if (memberShipPlan) {
+            filter["membership.plan"] = memberShipPlan;
+        }
+
+        // Status Filter
+        if (status) {
+            filter.status = status;
         }
 
         //total members 
