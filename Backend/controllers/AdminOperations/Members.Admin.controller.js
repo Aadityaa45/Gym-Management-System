@@ -9,6 +9,10 @@ import { randomPasswordGenerator } from "../../utils/RandomPasswordGenerator.uti
 import bcrypt from "bcryptjs"
 import EmailService from "../../services/email.service.js";
 import otpModel from "../../models/otp.modals.js";
+import InvoiceService from "../../services/invoice.service.js";
+import { generateInvoice } from "./invoice.controller.admin.js";
+import genrateBillInvoiceNumber from "../../utils/generateBillNumber.js";
+import mongoose from "mongoose";
 
 //this controllers will be having all the operations related to members including resgistrations to filterations 
 
@@ -128,7 +132,7 @@ export const registerMember = async (req,res)=>{
         })
         console.log(6)
         appAssert(!isMemberExist,"Member with the same email, phone, or full name already exists!")
-        return res.json({
+        res.json({
             success:true,
             message:"OTP sent Successfully"
         })
@@ -142,9 +146,7 @@ export const registerMember = async (req,res)=>{
             registrationData:req.body
         })
         console.log(8)
-
         
-
     }catch(error){
         if (error instanceof AppError) {
                     return res.json({success: false, message:error.message});
@@ -157,7 +159,10 @@ export const registerMember = async (req,res)=>{
 
 //-------------------------------------------REGISTRATION OTP VERIFICATION AND MEMBER DATA SAVING IN DATABASE---------------------------------------------
 export const verifyRegistrationOtp = async (req,res) =>{
+    //lets implement transaction in this 
+    const session = await mongoose.startSession()
     try{
+        session.startTransaction()
         const gymId = req.gym.gymId
         const {email,otp} = req.body
         appAssert(email,"Email is Required!")
@@ -191,7 +196,7 @@ export const verifyRegistrationOtp = async (req,res) =>{
 
             })
             console.log(3)
-            await finalRegistrationData.save()
+            await finalRegistrationData.save({session})
             console.log(4)
 
             //now we will delete the otp record from the database as it is no longer needed
@@ -200,27 +205,75 @@ export const verifyRegistrationOtp = async (req,res) =>{
                 gym:gymId,
                 email:email,
                 purpose:"registration"
-            })
+            },
+            {session}
+        )
             console.log(6)
 
-            return res.json({
-                success:true,
-                message:"Member Registered Successfully and Email Sent to the User with his/her Credentials"
-            })
+            //now lets generate the invoice const invoice =
+              const invoice =  await InvoiceService.generateInvoice({
+
+                    gymId,
+
+                    category:"membership",
+
+                    memberId:finalRegistrationData._id,
+
+                    membershipId:finalRegistrationData.membership.plan,
+
+                    items:[],
+
+                    amount:finalRegistrationData.fee.total,
+
+                    discountAmount:finalRegistrationData.fee.discount,
+
+                    paymentMethod:"upi",
+
+                    paymentReceived:finalRegistrationData.fee.paid,
+
+                    processedBy:finalRegistrationData.registeredBy,
+
+                    session
+                })
+
+                await session.commitTransaction();
+
+                // Close Session
+                session.endSession();
+            res.json({
+                success: true,
+                message: "Member Registered Successfully",
+                memberId: finalRegistrationData._id,
+                invoiceId: invoice._id
+            });
+
             //now we will send the email to the user with his/her credentials and other details such as invoice/bill
             console.log(7)
-            await EmailService.sendWelcomeEmail(verificationResult.registrationData.fullname, email, password)
+            await EmailService.sendWelcomeEmail(verificationResult.registrationData.fullname, email, password,"Fitness Beast Gym & MMA")
             console.log(8)
-            
+
         }
 
     }catch(error){
-         if (error instanceof AppError) {
-                    return res.json({success: false, message:error.message});
-                }
-                console.error(error);
+         await session.abortTransaction();
+        session.endSession();
+
+        if (error instanceof AppError) {
+            return res.json({
+                success: false,
+                message: error.message
+            });
+        }
+
+        console.error(error);
+
+        return res.json({
+            success: false,
+            message: "Something went wrong while registering member."
+        });
     }
 }
+
 
 
 //-----------------------------------------------------CONTROLLER FOR FETCHING MEMBERS WITH PAGINATION AS WELL AS SEARCH WITH DEBOUNCING---------------------------------

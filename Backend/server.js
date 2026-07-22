@@ -12,6 +12,7 @@ import getGymRoute from './routes/AdminRoutes/getgym.admin.routes.js'
 import membershiPlansRoutes from './routes/AdminRoutes/membershiPlans.admin.routes.js'
 import membershipRoutes from './routes/AdminRoutes/members.admin.routes.js'
 import productRoutes from './routes/AdminRoutes/product.admin.routes.js'
+import invoiceRoute from './routes/AdminRoutes/invoice.routes.js'
 
 console.log(membershipRoutes);
 //get the port running on from here
@@ -23,7 +24,8 @@ const app = express()
 
 const AllowedOrigins = [
   "http://localhost:5173",
-  "http://localhost:5174"
+  "http://localhost:5174",
+  "http://localhost:5175"
 ];
 
 const corsOptions = {
@@ -63,5 +65,7 @@ app.use('/api/gym/',getGymRoute)
 app.use('/api/gym/',membershiPlansRoutes)
 app.use('/api/admin/members',membershipRoutes)
 app.use('/api/admin/products',productRoutes)
+app.use('/api/admin/invoice',invoiceRoute)
+
 
 StartServer()

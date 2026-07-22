@@ -7,7 +7,10 @@ import { AppError } from "../../utils/errorAssertion.utils.js";
 export const generateInvoice = async (req,res)=>{
     try {
         const invoiceId = req.params.invoiceId
-        const invoice = await billAndInvoiceModel.findById(invoiceId).populate("member").populate("membership").populate("Gym")
+        const invoice = await billAndInvoiceModel.findById(invoiceId).populate("member").populate("membership").populate("gym").populate({
+    path:"items.product",
+    select:"name price"
+});
         appAssert(invoice,"Invoice didn't found")
 
         const html = invoiceTemplate(invoice)

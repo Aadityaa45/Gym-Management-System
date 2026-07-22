@@ -668,6 +668,11 @@ const Registration = () => {
             if(response.data.success){
                 toast.success("Member Registered Successfully!")
                 setOTPPopUp(false)
+                window.open(
+        `${backendUrl}/api/admin/invoice/${response.data.invoiceId}`,
+        "_blank"
+    );
+
             }else{
                 toast.error()
             }
