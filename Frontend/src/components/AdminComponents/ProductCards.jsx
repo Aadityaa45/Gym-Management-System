@@ -357,10 +357,195 @@
 // };
 
 // export default ProductCard;
+// import {
+//   Edit2,
+//   ShoppingCart,
+//   PackagePlus,
+// } from "lucide-react";
+
+// const ProductCard = ({
+//   product,
+//   onEdit,
+//   onSell,
+//   onRestock,
+// }) => {
+//   const getStatus = () => {
+//     if (product.quantity === 0)
+//       return {
+//         label: "Out of Stock",
+//         color: "bg-red-500/15 text-red-400 border-red-500/30",
+//       };
+
+//     if (product.quantity <= 10)
+//       return {
+//         label: "Low Stock",
+//         color: "bg-yellow-500/15 text-yellow-400 border-yellow-500/30",
+//       };
+
+//     return {
+//       label: "In Stock",
+//       color: "bg-green-500/15 text-green-400 border-green-500/30",
+//     };
+//   };
+
+//   const status = getStatus();
+
+//   return (
+//     <div
+//       className="
+//       w-full
+//       max-w-[300px]
+//       bg-[#091729]
+//       border
+//       border-[#1d3557]
+//       rounded-2xl
+//       overflow-hidden
+//       transition-all
+//       duration-300
+//       hover:-translate-y-1
+//       hover:border-violet-500
+//       hover:shadow-xl
+//     "
+//     >
+//       {/* Top */}
+//       <div className="flex justify-between items-center px-4 pt-4">
+//         <span className="px-3 py-1 rounded-full text-[11px] font-medium bg-indigo-500/15 text-indigo-300">
+//           {product.category}
+//         </span>
+
+//         <span
+//           className={`px-3 py-1 rounded-full border text-[11px] font-medium ${status.color}`}
+//         >
+//           {status.label}
+//         </span>
+//       </div>
+
+//       {/* Image */}
+//       <div className="h-36 flex items-center justify-center px-5 mt-2">
+//         <img
+//           src={product.image}
+//           alt={product.name}
+//           className="max-h-full object-contain transition duration-300 hover:scale-105"
+//         />
+//       </div>
+
+//       {/* Content */}
+//       <div className="px-4 pb-4">
+
+//         <p className="text-xs text-gray-400 truncate">
+//           {product.brand}
+//         </p>
+
+//         <h3 className="text-white text-base font-semibold mt-1 truncate">
+//           {product.name}
+//         </h3>
+
+//         <div className="flex justify-between items-center mt-3">
+//           <h2 className="text-xl font-bold text-violet-400">
+//             ₹{product.price}
+//           </h2>
+
+//           <span className="text-xs text-gray-300">
+//             {product.quantity} pcs
+//           </span>
+//         </div>
+
+//         {/* Stock Bar */}
+
+//         <div className="mt-3">
+
+//           <div className="w-full h-1.5 bg-[#162842] rounded-full overflow-hidden">
+
+//             <div
+//               className={`h-full rounded-full ${
+//                 product.quantity === 0
+//                   ? "bg-red-500 w-0"
+//                   : product.quantity <= 10
+//                   ? "bg-yellow-500 w-1/4"
+//                   : product.quantity <= 30
+//                   ? "bg-green-500 w-2/4"
+//                   : "bg-green-500 w-full"
+//               }`}
+//             />
+
+//           </div>
+
+//         </div>
+
+//         {/* Buttons */}
+
+//         <div className="grid grid-cols-3 gap-2 mt-4">
+
+//           <button
+//             onClick={() => onEdit(product)}
+//             className="
+//             h-10
+//             rounded-lg
+//             bg-[#12233d]
+//             border
+//             border-[#294872]
+//             flex
+//             items-center
+//             justify-center
+//             hover:bg-indigo-500
+//             transition
+//           "
+//           >
+//             <Edit2 size={17} />
+//           </button>
+
+//           <button
+//             onClick={() => onRestock(product)}
+//             className="
+//             h-10
+//             rounded-lg
+//             bg-emerald-500/10
+//             border
+//             border-emerald-500/30
+//             text-emerald-400
+//             flex
+//             items-center
+//             justify-center
+//             hover:bg-emerald-500
+//             hover:text-white
+//             transition
+//           "
+//           >
+//             <PackagePlus size={17} />
+//           </button>
+
+//           <button
+//             onClick={() => onSell(product)}
+//             disabled={product.quantity === 0}
+//             className="
+//             h-10
+//             rounded-lg
+//             bg-violet-600
+//             text-white
+//             flex
+//             items-center
+//             justify-center
+//             hover:bg-violet-500
+//             disabled:bg-gray-700
+//             transition
+//           "
+//           >
+//             <ShoppingCart size={17} />
+//           </button>
+
+//         </div>
+
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default ProductCard;
 import {
   Edit2,
   ShoppingCart,
   PackagePlus,
+  ShieldCheck,
 } from "lucide-react";
 
 const ProductCard = ({
@@ -369,175 +554,574 @@ const ProductCard = ({
   onSell,
   onRestock,
 }) => {
+
   const getStatus = () => {
+
     if (product.quantity === 0)
       return {
         label: "Out of Stock",
-        color: "bg-red-500/15 text-red-400 border-red-500/30",
+        color: "text-red-400",
+        bg: "bg-red-500/10",
+        border: "border-red-500/30",
       };
 
     if (product.quantity <= 10)
       return {
         label: "Low Stock",
-        color: "bg-yellow-500/15 text-yellow-400 border-yellow-500/30",
+        color: "text-yellow-400",
+        bg: "bg-yellow-500/10",
+        border: "border-yellow-500/30",
       };
 
     return {
       label: "In Stock",
-      color: "bg-green-500/15 text-green-400 border-green-500/30",
+      color: "text-emerald-400",
+      bg: "bg-emerald-500/10",
+      border: "border-emerald-500/30",
     };
   };
 
   const status = getStatus();
 
+  const stockPercentage = Math.min(
+    (product.quantity / 40) * 100,
+    100
+  );
+
   return (
-    <div
+
+<div
+className="
+
+group
+relative
+
+w-full
+max-w-[300px]
+
+overflow-hidden
+
+rounded-[26px]
+
+border
+border-[#2a2a2a]
+
+bg-gradient-to-b
+from-[#171717]
+via-[#121212]
+to-[#0c0c0c]
+
+transition-all
+duration-500
+
+hover:-translate-y-1
+hover:border-red-500/40
+
+hover:shadow-[0_20px_50px_rgba(255,0,0,.08)]
+
+"
+>
+
+{/* Ambient Glow */}
+
+<div
+className="
+absolute
+inset-0
+opacity-0
+group-hover:opacity-100
+transition-all
+duration-500
+bg-[radial-gradient(circle_at_top_right,rgba(255,0,0,.08),transparent_45%)]
+"
+/>
+
+{/* Top Section */}
+
+<div className="relative z-10 p-4">
+
+<div className="flex justify-between items-center">
+
+<div
+className="
+px-3
+py-1.5
+
+rounded-full
+
+bg-red-500/10
+
+border
+border-red-500/20
+
+text-red-400
+
+text-[10px]
+
+uppercase
+tracking-[2px]
+
+font-semibold
+"
+>
+
+{product.category}
+
+</div>
+
+<div
+className={`
+flex
+items-center
+gap-1.5
+
+px-3
+py-1.5
+
+rounded-full
+
+border
+
+${status.bg}
+${status.border}
+`}
+>
+
+<ShieldCheck
+size={12}
+className={status.color}
+/>
+
+<span
+className={`
+text-[10px]
+font-semibold
+uppercase
+tracking-wide
+${status.color}
+`}
+>
+
+{status.label}
+
+</span>
+
+</div>
+
+</div>
+
+{/* Product Image */}
+
+<div
+className="
+relative
+
+mt-3
+
+h-[125px]
+
+rounded-2xl
+
+overflow-hidden
+
+bg-gradient-to-br
+from-[#1a1a1a]
+to-[#131313]
+
+border
+border-[#242424]
+
+flex
+items-center
+justify-center
+"
+>
+
+{/* Glow */}
+
+<div
+className="
+absolute
+
+w-40
+h-40
+
+rounded-full
+
+bg-red-500/10
+
+blur-3xl
+"
+/>
+
+<img
+src={product.image}
+alt={product.name}
+className="
+relative
+z-10
+
+h-[110px]
+
+object-contain
+
+transition-all
+duration-500
+
+group-hover:scale-105
+group-hover:-translate-y-1
+"
+/>
+
+</div>
+{/* Product Details */}
+
+<div className="mt-5">
+
+  {/* Brand */}
+
+  <p
+    className="
+    text-[10px]
+    uppercase
+    tracking-[2px]
+    text-red-400
+    font-semibold
+    truncate
+  "
+  >
+    {product.brand || "Premium Brand"}
+  </p>
+
+  {/* Product Name */}
+
+  <h2
+    className="
+    mt-1.5
+text-[18px]
+leading-[28px]
+min-h-[56px]
+  "
+  >
+    {product.name}
+  </h2>
+
+</div>
+
+{/* Divider */}
+
+<div
+className="
+my-1
+
+h-px
+
+bg-gradient-to-r
+from-transparent
+via-[#272727]
+to-transparent
+"
+/>
+
+{/* Price & Stock */}
+
+<div className="flex justify-between items-end">
+
+  {/* Price */}
+
+  <div>
+
+    <p
       className="
-      w-full
-      max-w-[300px]
-      bg-[#091729]
-      border
-      border-[#1d3557]
-      rounded-2xl
-      overflow-hidden
-      transition-all
-      duration-300
-      hover:-translate-y-1
-      hover:border-violet-500
-      hover:shadow-xl
+      text-[10px]
+
+      uppercase
+
+      tracking-[3px]
+
+      text-gray-500
     "
     >
-      {/* Top */}
-      <div className="flex justify-between items-center px-4 pt-4">
-        <span className="px-3 py-1 rounded-full text-[11px] font-medium bg-indigo-500/15 text-indigo-300">
-          {product.category}
-        </span>
+      Price
+    </p>
 
-        <span
-          className={`px-3 py-1 rounded-full border text-[11px] font-medium ${status.color}`}
-        >
-          {status.label}
-        </span>
-      </div>
+    <h2
+      className="
+      mt-1
 
-      {/* Image */}
-      <div className="h-36 flex items-center justify-center px-5 mt-2">
-        <img
-          src={product.image}
-          alt={product.name}
-          className="max-h-full object-contain transition duration-300 hover:scale-105"
-        />
-      </div>
+      text-[32px]
 
-      {/* Content */}
-      <div className="px-4 pb-4">
+      font-black
 
-        <p className="text-xs text-gray-400 truncate">
-          {product.brand}
-        </p>
+      leading-none
 
-        <h3 className="text-white text-base font-semibold mt-1 truncate">
-          {product.name}
-        </h3>
+      text-red-500
+    "
+    >
+      ₹{product.price}
+    </h2>
 
-        <div className="flex justify-between items-center mt-3">
-          <h2 className="text-xl font-bold text-violet-400">
-            ₹{product.price}
-          </h2>
+  </div>
 
-          <span className="text-xs text-gray-300">
-            {product.quantity} pcs
-          </span>
-        </div>
+  {/* Stock */}
 
-        {/* Stock Bar */}
+  <div className="text-right">
 
-        <div className="mt-3">
+    <p
+      className="
+      text-[10px]
 
-          <div className="w-full h-1.5 bg-[#162842] rounded-full overflow-hidden">
+      uppercase
 
-            <div
-              className={`h-full rounded-full ${
-                product.quantity === 0
-                  ? "bg-red-500 w-0"
-                  : product.quantity <= 10
-                  ? "bg-yellow-500 w-1/4"
-                  : product.quantity <= 30
-                  ? "bg-green-500 w-2/4"
-                  : "bg-green-500 w-full"
-              }`}
-            />
+      tracking-[3px]
 
-          </div>
+      text-gray-500
+    "
+    >
+      Available
+    </p>
 
-        </div>
+    <h3
+      className="
+      text-[24px]
 
-        {/* Buttons */}
+      font-black
 
-        <div className="grid grid-cols-3 gap-2 mt-4">
+      leading-none
 
-          <button
-            onClick={() => onEdit(product)}
-            className="
-            h-10
-            rounded-lg
-            bg-[#12233d]
-            border
-            border-[#294872]
-            flex
-            items-center
-            justify-center
-            hover:bg-indigo-500
-            transition
-          "
-          >
-            <Edit2 size={17} />
-          </button>
+      text-white
+    "
+    >
+      {product.quantity}
+    </h3>
 
-          <button
-            onClick={() => onRestock(product)}
-            className="
-            h-10
-            rounded-lg
-            bg-emerald-500/10
-            border
-            border-emerald-500/30
-            text-emerald-400
-            flex
-            items-center
-            justify-center
-            hover:bg-emerald-500
-            hover:text-white
-            transition
-          "
-          >
-            <PackagePlus size={17} />
-          </button>
+    <p
+      className="
+      text-xs
+      text-gray-400
+      mt-1
+    "
+    >
+      pcs
+    </p>
 
-          <button
-            onClick={() => onSell(product)}
-            disabled={product.quantity === 0}
-            className="
-            h-10
-            rounded-lg
-            bg-violet-600
-            text-white
-            flex
-            items-center
-            justify-center
-            hover:bg-violet-500
-            disabled:bg-gray-700
-            transition
-          "
-          >
-            <ShoppingCart size={17} />
-          </button>
+  </div>
 
-        </div>
+</div>
 
-      </div>
-    </div>
-  );
+{/* Stock Bar */}
+
+<div className="mt-4">
+
+  <div className="flex justify-between mb-1">
+
+    <span
+      className="
+      text-xs
+      text-gray-500
+    "
+    >
+      Inventory
+    </span>
+
+    <span
+      className={`
+      text-xs
+      font-semibold
+
+      ${status.color}
+    `}
+    >
+      {product.quantity} Left
+    </span>
+
+  </div>
+
+  <div
+    className="
+    h-2
+
+    rounded-full
+
+    overflow-hidden
+
+    bg-[#1c1c1c]
+  "
+  >
+
+    <div
+      className={`
+      h-full
+
+      rounded-full
+
+      transition-all
+      duration-700
+
+      ${
+        product.quantity === 0
+          ? "bg-red-600"
+          : product.quantity <= 10
+          ? "bg-yellow-500"
+          : "bg-gradient-to-r from-red-600 via-red-500 to-red-400"
+      }
+      `}
+      style={{
+        width: `${stockPercentage}%`,
+      }}
+    />
+
+  </div>
+
+</div>
+
+{/* Divider */}
+
+<div
+className="
+mt-4
+mb-4
+
+border-t
+
+border-[#242424]
+"
+/>
+{/* Action Buttons */}
+
+<div className="grid grid-cols-2 gap-3">
+
+  {/* Edit */}
+
+  <button
+    onClick={() => onEdit(product)}
+    className="
+    h-10
+
+    rounded-xl
+
+    border
+    border-[#2a2a2a]
+
+    bg-[#181818]
+
+    hover:border-red-500/40
+    hover:bg-[#1e1e1e]
+
+    transition-all
+    duration-300
+
+    flex
+    items-center
+    justify-center
+    gap-2
+
+    text-white
+  "
+  >
+
+    <Edit2 size={17} />
+
+    <span className="font-semibold text-[13px]">
+      Edit
+    </span>
+
+  </button>
+
+  {/* Restock */}
+
+  <button
+    onClick={() => onRestock(product)}
+    className="
+    h-11
+
+    rounded-xl
+
+    border
+    border-[#2a2a2a]
+
+    bg-[#181818]
+
+    hover:border-emerald-500/40
+    hover:bg-[#1e1e1e]
+
+    transition-all
+    duration-300
+
+    flex
+    items-center
+    justify-center
+    gap-2
+
+    text-white
+  "
+  >
+
+    <PackagePlus
+      size={17}
+      className="text-emerald-400"
+    />
+
+    <span className="font-semibold text-sm">
+      Restock
+    </span>
+
+  </button>
+
+</div>
+
+{/* Primary Button */}
+
+<button
+  onClick={() => onSell(product)}
+  disabled={product.quantity === 0}
+  className="
+  mt-3
+
+  w-full
+  h-11
+
+  rounded-xl
+
+  bg-gradient-to-r
+  from-red-700
+  via-red-600
+  to-red-500
+
+  text-white
+
+  font-bold
+  tracking-wide
+
+  flex
+  items-center
+  justify-center
+  gap-3
+
+  transition-all
+  duration-300
+
+  hover:shadow-[0_15px_30px_rgba(255,0,0,.30)]
+  hover:scale-[1.02]
+
+  disabled:bg-gray-700
+  disabled:cursor-not-allowed
+  disabled:hover:scale-100
+"
+>
+
+  <ShoppingCart size={17} />
+
+  Add To Selling Cart
+
+</button>
+
+</div>
+
+</div>
+
+);
+
 };
 
 export default ProductCard;

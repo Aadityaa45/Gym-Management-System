@@ -217,3 +217,77 @@ export const addNewProduct = async (req,res) =>{
         return res.json({success: false, message:"An error occured while Adding a new Product in!"});
     }
 }
+
+
+
+//----------------------------------------------------------THIS IS THE CONTROLLER FOR SEARCHING ABOUT THE PRODUCTS BASED ON DIFFERENT PARAMETERS---------------------------------------------
+export const searchProducts = async (req,res) =>{
+    try {
+        const page = Math.max(Number(req.query.page)||1,1)
+        const limit = Number(req.query.limit) || 8
+        const search = req.query.search
+
+        const skip = (page-1)*limit
+
+        //now lets fetch the basic gymid and all
+        const gymId = req.gym.gymId
+
+        appAssert(gymId,"No Authorized!!")
+
+        //lets create the basic filter by which we will find the results 
+        let filter = {
+            gym:gymId
+        }
+
+        //if search parameter is there in the query
+        if(search && search.trim()){
+            filter.$or = [
+            {
+                name: {
+                    $regex: search,
+                    $options: "i"
+                }
+            },
+            {
+                category: {
+                    $regex: search,
+                    $options: "i"
+                }
+            }
+        ];
+     }
+
+        //now we will call serch through db with the filters we created
+        const [searchResults,totalProducts] = await Promise.all([
+            productModel.find(filter).skip(skip).limit(limit).sort({
+                priorityOrder:1,
+                createdAt:-1
+            }).lean(),  //usually when we fetch documents in mongo ut creates the mongoose document and it additionally give lots of getters and setters like .save() .remove() but here we only need the plain js object so it optimises our performance 
+            productModel.countDocuments(filter)
+        ])
+
+        appAssert(searchResults,"No results found!!")
+
+        return res.json({
+            success:true,
+            searchResults,
+            pagination:{
+                totalProducts,
+                totalPages : Math.ceil(totalProducts/limit),
+                pageSize :limit,
+                currentPage:page
+            },
+        })
+
+    } catch (error) {
+        if (error instanceof AppError) {
+            return res.json({success: false, message:error.message});
+        }
+        return res.json({success: false, message:"An error occured while Adding a new Product in!"});
+    }
+}
+
+
+
+
+//----------------------------------------------------------THIS FUNCTIONALITY IS FOR THE SELL PRODUCT INVOICE GENERATION---------------------------------------------------
