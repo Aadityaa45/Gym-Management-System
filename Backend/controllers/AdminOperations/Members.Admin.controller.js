@@ -33,14 +33,14 @@ export const registerMember = async (req,res)=>{
         const gymId = req.gym.gymId
 
         //check weather the gym exist or not
-        console.log(1)
-        const gymExist = await GymDetails.findById(gymId)
-        console.log(2)
+
+        //here, we dont want the moongose object as we are not going to perform any operation on the gym details so we will use lean() method to get the plain javascript object instead of moongose object
+        const gymExist = await GymDetails.findById(gymId).lean()
 
         appAssert(gymExist,"Gym Not Found! Please Login Again!")
 
-        //lets get the registration data from the body 
         
+        //Lets get the data from the frontend and validate it properly with all the edge cases
         const {
             fullname,
             email,
@@ -53,99 +53,81 @@ export const registerMember = async (req,res)=>{
             registeredBy
         } = req.body
         console.log(req.body)
-        console.log("v1")
+        
+        //full Name Validation
         appAssert(fullname,"Full Name is Required!")
         appAssert(typeof fullname === "string","Full Name Must be a String!")
-        console.log("v2")
-
-        console.log("v3")
+        
+        //email validation
         appAssert(email,"Email is Required!")
         appAssert(typeof email === "string","Email Must be a String!")
-        console.log("v4")
+        
+        //Phone Validation
+        appAssert(phone,"Phone Number is Required!")
+        appAssert(typeof phone === "string","Phone Number Must be a String!")
+        appAssert(/^[0-9]{10}$/.test(phone),"Invalid Phone Number")
 
-                console.log("v5")
-                    appAssert(
-                /^[0-9]{10}$/.test(phone),
-                "Invalid Phone Number"
-            )
-            console.log("v6")
+        //Joining Date Validation
+        appAssert(joiningdate,"Joining Date is Required!")
+        appAssert(typeof joiningdate === "string","Joining Date Must be a String!")
+        appAssert(!isNaN(Date.parse(joiningdate)),"Invalid Joining Date")
+        // appAssert(!isNaN(new Date(joiningdate)),"Invalid Joining Date")
+            
+                
+        appAssert(address,"Address is Required!")
+        appAssert(dob,"Date of Birth is Required!")
+        
+        appAssert(typeof fee.total === "number","Fee total is required")
 
-            console.log("v7")
-                    appAssert(
-                !isNaN(new Date(joiningdate)),
-                "Invalid Joining Date"
-            )
-            console.log("v8")
-
-
-                console.log("v9")
-                    appAssert(address,"Address is Required!")
-                    appAssert(dob,"Date of Birth is Required!")
-                console.log("v10")
-
-                    console.log("v11")
-                    appAssert(
-                typeof fee.total === "number",
-                "Fee total is required"
-            )
-            console.log("v12")
-
-            console.log("v13")
-            appAssert(
-                typeof fee.paid === "number",
-                "Paid amount is required"
-            )
-            console.log("v14")
-
-            console.log("v15")
-            appAssert(
-                fee.paid <= fee.total,
-                "Paid amount cannot exceed total fee"
-            )
-            console.log("v16")
+        appAssert(typeof fee.paid === "number","Paid amount is required")
+    
+        appAssert(fee.paid <= fee.total,"Paid amount cannot exceed total fee")
+            
         appAssert(membership,"Membership is Required!")
-        console.log("v17")
-
-        console.log("v18")
+                
         appAssert(typeof membership === "object","Membership Must be an Object!")
-        console.log("v19")
+        
         appAssert(registeredBy,"Registered By is Required!")
 
 
         //------------------------------------ENTERED PLAN VALIDATION--------------------------------------------
         //we get the data and now we have to check weather the entered plan already exist or not in the database and if it exist then we will check weather the plan is active or not and if it is active then we will allow the registration otherwise we will not allow the registration
-        console.log(3)
-        const isPlanExist = await MembershipPlanModel.findById(membership.plan)
-        console.log(4)
-        appAssert(isPlanExist,"Membership Plan Not Found!")
-        appAssert(isPlanExist.active === true,"Membership Plan is not Active!")
+        
         
         //-------------------------------------ENTERED KEY INFO OF MEMBER VALIDATION-----------------------------------------
         //now we will check weather any member with the same email,phone,fullname and gym exist or not
         //the inution behind checking this is that if in MMA section there are two kids and have same father info for email and phone so in that case we will check names also because in that case the names will be different so we will check all the three fields to avoid any confusion
-        console.log(5)
-        const isMemberExist = await membersModel.findOne({
-            email:email,
-            phone:phone,
-            fullName:fullname,
-            gym:gymId
-        })
-        console.log(6)
+
+        //here botth the db queries are independent of each other so we can run them in parallel using Promise.all() to improve performance and reduce the overall execution time
+
+        const [isPlanExist, isMemberExist] = await Promise.all([
+            MembershipPlanModel.findById(membership.plan).lean(),
+            membersModel.findOne({
+                email:email,
+                phone:phone,
+                fullName:fullname,
+                gym:gymId
+            })
+        ])
+
+        appAssert(isPlanExist,"Membership Plan Not Found!")
+        appAssert(isPlanExist.active === true,"Membership Plan is not Active!")
         appAssert(!isMemberExist,"Member with the same email, phone, or full name already exists!")
+
+        //now sending the response to the frontend that the otp has been sent successfully and now we will send the otp to the user email
+        //here we are not returning with response because a
         res.json({
             success:true,
             message:"OTP sent Successfully"
         })
 
         //--------------------------------------------SAVING THE DATA IN OTP AND SENDING OTP TO USER EMAIL----------------------------
-        console.log(7)
         await createUpdateOtp({
             gym:gymId,
             email:email,
             purpose:"registration",
             registrationData:req.body
         })
-        console.log(8)
         
     }catch(error){
         if (error instanceof AppError) {
@@ -154,8 +136,6 @@ export const registerMember = async (req,res)=>{
     }
     
 }
-
-
 
 //-------------------------------------------REGISTRATION OTP VERIFICATION AND MEMBER DATA SAVING IN DATABASE---------------------------------------------
 export const verifyRegistrationOtp = async (req,res) =>{
@@ -168,15 +148,15 @@ export const verifyRegistrationOtp = async (req,res) =>{
         appAssert(email,"Email is Required!")
         appAssert(otp,"OTP is Required!")
 
-        console.log(1)
+        //lets store the verification result in a variable 
        const verificationResult = await verifyOtpRecord({
             gym:gymId,
             email:email,
             otp:otp,
             purpose:"registration"
         })
-        console.log(2)
 
+        //now we will generate a random password for the user and save it in the database after hashing it
         const password = randomPasswordGenerator(8) // Generate a random password of length 8
 
         //if the otp is verified then we will save the data in the database
@@ -195,12 +175,10 @@ export const verifyRegistrationOtp = async (req,res) =>{
                 registeredBy: verificationResult.registrationData.registeredBy
 
             })
-            console.log(3)
             await finalRegistrationData.save({session})
-            console.log(4)
 
             //now we will delete the otp record from the database as it is no longer needed
-            console.log(5)
+
             await otpModel.deleteMany({
                 gym:gymId,
                 email:email,
@@ -208,7 +186,6 @@ export const verifyRegistrationOtp = async (req,res) =>{
             },
             {session}
         )
-            console.log(6)
 
             //now lets generate the invoice const invoice =
               const invoice =  await InvoiceService.generateInvoice({
@@ -248,9 +225,7 @@ export const verifyRegistrationOtp = async (req,res) =>{
             });
 
             //now we will send the email to the user with his/her credentials and other details such as invoice/bill
-            console.log(7)
             await EmailService.sendWelcomeEmail(verificationResult.registrationData.fullname, email, password,"Fitness Beast Gym & MMA")
-            console.log(8)
 
         }
 

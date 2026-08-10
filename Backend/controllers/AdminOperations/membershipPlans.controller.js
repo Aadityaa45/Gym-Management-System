@@ -61,14 +61,11 @@ export const addNewMembershipPlan = async (req,res) =>{
 
         //now we will send success message to the gym owner about the new plan addition\
         //to, subject, html, text
-        const gymOwner = await GymDetails.findById(gymId).select("ownerEmail gymName");
+        const gymOwner = await GymDetails.findById(gymId).select("ownerEmail gymName").lean();
         await emailService.sendEmail({
-
-    to: gymOwner.ownerEmail,
-
-    subject: "New Membership Plan Added",
-
-    html: `
+        to: gymOwner.ownerEmail,
+        subject: "New Membership Plan Added",
+        html: `
         <h2>Membership Plan Added Successfully</h2>
 
         <p>Hello <b>${gymOwner.gymName}</b>,</p>

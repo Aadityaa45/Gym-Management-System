@@ -85,7 +85,7 @@ const billAndInvoiceSchema = new mongoose.Schema(
 
     member: {
       type: mongoose.Types.ObjectId,
-      ref: "members",
+      ref: "member",
       required: true,
     },
 

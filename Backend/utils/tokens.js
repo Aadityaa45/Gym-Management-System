@@ -6,7 +6,7 @@ export const generateAccessToken = (tokenObj)=>{
     tokenObj,
     process.env.ACCESS_TOKEN_SECRET,
     {
-        expiresIn:"1d"
+        expiresIn:"5d"
     }
 )
 }
@@ -18,7 +18,7 @@ export const generateRefreshToken = (tokenobjaccesstoken)=>{
     tokenobjaccesstoken,
     process.env.REFRESH_TOKEN_SECRET,
     {
-        expiresIn:"7d"
+        expiresIn:"15d"
     }
 )
 }

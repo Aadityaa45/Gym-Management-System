@@ -3,6 +3,7 @@ import { appAssert } from "../../utils/errorAssertion.utils.js"
 import { AppError } from "../../utils/errorAssertion.utils.js";
 import GymDetails from "../../models/gym.modals.js";
 import EmailService from "../../services/email.service.js";
+import { assert } from "console";
 
 
 //--------------------------------------------------- THIS IS THE CONTROLLER TO ADD NEW PRODUCT---------------------------------------
@@ -291,3 +292,22 @@ export const searchProducts = async (req,res) =>{
 
 
 //----------------------------------------------------------THIS FUNCTIONALITY IS FOR THE SELL PRODUCT INVOICE GENERATION---------------------------------------------------
+export const sellProduct = async (req,res) =>{
+    //in this sell product functionality we will get the array of products object which will include the basic details of the product
+    //we will try to get the member id if the registered member is purchasing the product
+    //if not member we need the name of the purchaser
+    //then we will generate the invoice for the product purchase
+    //then we will send sell mail to the gym owner
+    try {
+        const gym = req.gym.gymId
+        const {
+            products,
+            purchaser
+        } = req.body
+
+        appAssert(products.length>0,"No Products selected to generate the invoice")
+        appAssert(purchaser,"purchaser is required ")
+    } catch (error) {
+        
+    }
+}
