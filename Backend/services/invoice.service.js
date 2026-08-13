@@ -68,6 +68,7 @@ class InvoiceService {
     static async generateInvoice({
     gymId,
     category,
+    invoiceTo = null,
     memberId,
     membershipId = null,
     items = [],
@@ -105,6 +106,7 @@ class InvoiceService {
         billNumber,
         gym: gymId,
         category,
+        invoiceTo = null,
         member: memberId,
         membership: membershipId,
         items,

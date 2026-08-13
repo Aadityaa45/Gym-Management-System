@@ -86,7 +86,12 @@ const billAndInvoiceSchema = new mongoose.Schema(
     member: {
       type: mongoose.Types.ObjectId,
       ref: "member",
-      required: true,
+      // required: true,
+    },
+
+    invoiceTo:{
+      type:String,
+
     },
 
     // Membership Invoice

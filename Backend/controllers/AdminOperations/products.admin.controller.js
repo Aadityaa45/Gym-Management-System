@@ -3,7 +3,8 @@ import { appAssert } from "../../utils/errorAssertion.utils.js"
 import { AppError } from "../../utils/errorAssertion.utils.js";
 import GymDetails from "../../models/gym.modals.js";
 import EmailService from "../../services/email.service.js";
-import { assert } from "console";
+import InvoiceService from "../../services/invoice.service.js";
+import { generateInvoice } from "./invoice.controller.admin.js";
 
 
 //--------------------------------------------------- THIS IS THE CONTROLLER TO ADD NEW PRODUCT---------------------------------------
@@ -291,23 +292,415 @@ export const searchProducts = async (req,res) =>{
 
 
 
+
 //----------------------------------------------------------THIS FUNCTIONALITY IS FOR THE SELL PRODUCT INVOICE GENERATION---------------------------------------------------
-export const sellProduct = async (req,res) =>{
+
+export const sellProduct = async (req, res) => {
+
     //in this sell product functionality we will get the array of products object which will include the basic details of the product
     //we will try to get the member id if the registered member is purchasing the product
     //if not member we need the name of the purchaser
     //then we will generate the invoice for the product purchase
     //then we will send sell mail to the gym owner
+
+    const session = await mongoose.startSession();
+
     try {
-        const gym = req.gym.gymId
+
+        const gymId = req.gym.gymId;
+
         const {
             products,
-            purchaser
-        } = req.body
+            purchaser,
+            paymentMethod = "cash",
+            paymentReceived = 0,
+            discountAmount = 0,
+            taxAmount = 0,
+            processedBy,
+            notes = null,
+            dueDate = null
+        } = req.body;
 
-        appAssert(products.length>0,"No Products selected to generate the invoice")
-        appAssert(purchaser,"purchaser is required ")
+
+        //basic validations
+
+        appAssert(
+            gymId,
+            "Gym information is required!!"
+        );
+
+        appAssert(
+            Array.isArray(products) && products.length > 0,
+            "No Products selected to generate the invoice"
+        );
+
+        appAssert(
+            purchaser,
+            "Purchaser is required"
+        );
+
+        appAssert(
+            processedBy,
+            "Processed By is required"
+        );
+
+
+        //now we will start the transaction
+
+        await session.startTransaction();
+
+
+        //now we will find the ids of all the products
+
+        const productIds = products.map(
+            (item) => item._id
+        );
+
+
+        //now we will find it in our db that this products exist or not
+
+        const foundProducts = await productModel.find({
+
+            _id: {
+                $in: productIds
+            },
+
+            gym: gymId
+
+        }).session(session);
+
+
+        //lets check weather the products found are equal to the products we are trying to sell
+
+        appAssert(
+            foundProducts.length === productIds.length,
+            "Some of the products are not found in the database!!"
+        );
+
+
+        //now we will create the map for the found products to easily access them by their id
+
+        const productMap = new Map();
+
+        foundProducts.forEach((product) => {
+
+            productMap.set(
+                product._id.toString(),
+                product
+            );
+
+        });
+
+
+        //now we will generate the invoice items
+
+        const invoiceItems = [];
+
+        let amount = 0;
+
+
+        for (const cartItems of products) {
+
+            const product = productMap.get(
+                cartItems._id.toString()
+            );
+
+
+            appAssert(
+                product,
+                "Product not found in the database!!"
+            );
+
+
+            //now we will check the quantity
+
+            const quantity = Number(
+                cartItems.quantity
+            );
+
+
+            appAssert(
+                Number.isInteger(quantity) && quantity > 0,
+                `Invalid quantity for product: ${product.name}`
+            );
+
+
+            appAssert(
+                quantity <= product.quantity,
+                `Insufficient stock for product: ${product.name}`
+            );
+
+
+            //now we will make the payment related information
+
+            const unitPrice = Number(
+                product.price
+            );
+
+
+            const total = unitPrice * quantity;
+
+
+            //creating the invoice item
+
+            invoiceItems.push({
+
+                product: product._id,
+
+                productName: product.name,
+
+                quantity,
+
+                unitPrice,
+
+                total
+
+            });
+
+
+            amount += total;
+
+        }
+
+
+        //now we will take the payment details from the request body
+
+        const receivedAmount = Number(
+            paymentReceived
+        );
+
+        const discount = Number(
+            discountAmount
+        );
+
+        const tax = Number(
+            taxAmount
+        );
+
+
+        //now we will implement the validations based on these credentials
+
+        //first the received amount should always be greater than or equal to 0
+
+        appAssert(
+            Number.isFinite(receivedAmount) &&
+            receivedAmount >= 0,
+            "Invalid Payment Received Value!!"
+        );
+
+
+        //now we will do the same for the discount amount and tax amount
+
+        appAssert(
+            Number.isFinite(discount) &&
+            discount >= 0,
+            "Invalid Discount Value!!"
+        );
+
+
+        appAssert(
+            Number.isFinite(tax) &&
+            tax >= 0,
+            "Invalid Tax Amount!!"
+        );
+
+
+        //now we will calculate the final amount
+
+        const finalAmount =
+            amount +
+            tax -
+            discount;
+
+
+        appAssert(
+            finalAmount >= 0,
+            "Invalid Final Amount Number!!"
+        );
+
+
+        appAssert(
+            receivedAmount <= finalAmount,
+            "Payment received is more than the final amount!!"
+        );
+
+
+        //now we will determine whether the purchaser is a registered member or not
+
+        const memberId =
+            purchaser.memberId || null;
+
+
+        //if member id is not available then we will store purchaser name in invoiceTo
+
+        const invoiceTo =
+            memberId
+                ? null
+                : purchaser.name;
+
+
+        appAssert(
+            memberId || invoiceTo,
+            "Member ID or purchaser name is required!!"
+        );
+
+
+        // --------------------------------------------------
+        // GENERATE INVOICE
+        // --------------------------------------------------
+
+        const invoice =
+            await InvoiceService.generateInvoice({
+
+                gymId,
+
+                category: "product",
+
+                memberId,
+
+                invoiceTo,
+
+                items: invoiceItems,
+
+                amount,
+
+                discountAmount: discount,
+
+                taxAmount: tax,
+
+                paymentMethod,
+
+                paymentReceived: receivedAmount,
+
+                processedBy,
+
+                notes,
+
+                dueDate,
+
+                session
+
+            });
+
+
+        // --------------------------------------------------
+        // UPDATE PRODUCT STOCK
+        // --------------------------------------------------
+
+        for (const cartItem of products) {
+
+            const quantity =
+                Number(cartItem.quantity);
+
+
+            const updatedProduct =
+                await productModel.findOneAndUpdate(
+
+                    {
+                        _id: cartItem._id,
+
+                        gym: gymId,
+
+                        quantity: {
+                            $gte: quantity
+                        }
+                    },
+
+                    {
+                        $inc: {
+                            quantity: -quantity
+                        }
+                    },
+
+                    {
+                        new: true,
+
+                        session
+
+                    }
+
+                );
+
+
+            //if stock was changed by another transaction
+            //then this will fail and whole transaction will rollback
+
+            appAssert(
+                updatedProduct,
+                `Unable to update stock for ${cartItem._id}`
+            );
+
+        }
+
+
+        //now we will commit the transaction
+
+        await session.commitTransaction();
+
+
+        // --------------------------------------------------
+        // SUCCESS RESPONSE
+        // --------------------------------------------------
+
+        return res.status(201).json({
+
+            success: true,
+
+            message: "Product sold and invoice generated successfully",
+
+            invoice
+
+        });
+
+
     } catch (error) {
-        
+
+        //if anything goes wrong then rollback everything
+
+        if (session.inTransaction()) {
+
+            await session.abortTransaction();
+
+        }
+
+
+        console.error(
+            "Sell Product Error:",
+            error
+        );
+
+
+        if (error instanceof AppError) {
+
+            return res.status(
+                error.statusCode || 400
+            ).json({
+
+                success: false,
+
+                message: error.message
+
+            });
+
+        }
+
+
+        return res.status(500).json({
+
+            success: false,
+
+            message: "Something went wrong while selling the product"
+
+        });
+
+
+    } finally {
+
+        //finally we will close the session
+
+        await session.endSession();
+
     }
-}
+
+};
+
