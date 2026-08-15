@@ -106,7 +106,7 @@ class InvoiceService {
         billNumber,
         gym: gymId,
         category,
-        invoiceTo = null,
+        invoiceTo :null,
         member: memberId,
         membership: membershipId,
         items,

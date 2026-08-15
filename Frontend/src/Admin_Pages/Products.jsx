@@ -905,6 +905,7 @@ import React, { useEffect } from "react";
 import { products as DummyProducts } from "../assets/hardcoded_content.js/dummyProductsData";
 import ProductCard from "../components/AdminComponents/ProductCards"
 import { useState } from "react";
+import toast from "react-hot-toast";
 import {
     Search,
     ShoppingCart,
@@ -913,8 +914,7 @@ import {
     Plus,
     Trash2
 } from "lucide-react";
-import axios from "axios";
-import toast from "react-hot-toast";
+
 const Products = () =>{
   const [products,setProducts] = useState([])
   const [currentPage,setCurrentPage] = useState(1)
@@ -922,6 +922,8 @@ const Products = () =>{
   const [cartOpen,setCartOpen] = useState(false)
   const [openEditPopUp,setEditPopUp] = useState(false)
   const [search,setSearch] = useState("")
+  const [invoicePopup,setInvoicePopUp] = useState(false)
+  const [invoiceLoading,setInvoiceLoading] = useState(false)
   const [totalPages,setTotalPages] = useState(1)
   const [editProductData,setEditProductData] = useState({
     productName:"",
@@ -930,6 +932,17 @@ const Products = () =>{
     productImage:"",
     productDescription:"",
     productPriorityOrder:"",
+  })
+
+  const [invoiceData,setInvoiceData] = useState({
+    memberId:"",
+    invoiceTo:"",
+    paymentMethod:"",
+    paymentReceived:"",
+    discountAmount:"",
+    taxAmount:"",
+    notes:"",
+    dueDate:""
   })
   const [selectedProduct,setSelectedProduct] = useState(null)
   // const [totalPages,setTotalPages] = useState(1)
@@ -952,6 +965,15 @@ const Products = () =>{
   const searchOnChangeHandler = (e) =>{
     setSearch(e.target.value)
     setCurrentPage(1)
+  }
+
+  //this is the function to handle the chnage of the invoice popup values 
+  const invoiceDataOnChangeHandler = (e) =>{
+    const [name,value]= e.target
+    setInvoiceData((prev)=>({
+        ...prev,
+        [name]:value
+    }))
   }
 
   //here, we will create a functionality to add the selected products in the cart and alltogether we can generate the invoice 
@@ -1012,6 +1034,85 @@ const Products = () =>{
         console.log(error);
     console.log(error.response);
         toast.error("Something went wrong!")
+    }
+  }
+
+  //------------------------------------------------THIS IS THE FUNCTION FOR INVOICE GENERATOR BACKEND CALL-----------------------------------------
+  const generateInvoice = async () =>{
+    try {
+        if(cart.length===0){
+            toast.error("Cart Is Empty!")
+            return
+        }
+        if(invoiceData.paymentReceived==="" || Number(invoiceData.paymentReceived<0)){
+            toast.error("Please Enter a valid payment recieved amount!!")
+            return
+        }
+
+        setInvoiceLoading(true)
+
+        //now we call the backend api
+        const backendUrl = import.meta.env.VITE_BACKEND_URL;
+        const response = await axios.post(
+            `${backendUrl}/api/admin/products/fetch-products?page=${currentPage}&limit=8&search=${search}`,
+            {
+                //here, we will send the payload to the backend
+                products:
+                    cart.map((item)=>({
+                        _id:item._id,
+                        quantity:item.quantity
+                })),
+                
+                paymentMethod:invoiceData.paymentMethod,
+                paymentReceived:Number(invoiceData.paymentReceived),
+                discountAmount:Number(invoiceData.discountAmount ||0),
+                notes:invoiceData.notes.trim() || null,
+                dueDate:invoiceData.dueDate || null,
+                taxAmount:Number(invoiceData.taxAmount || 0),
+                purchaser: {
+                    memberId: invoiceData.memberId.trim() || null,
+                    invoiceTo: invoiceData.purchaserName.trim()
+                },
+            },
+            {
+                withCredentials:true
+            }
+        )  
+        if(response.data.success){
+            toast.success("Invoice Generated Successfullyy!!")
+            setInvoiceLoading(false)
+            setCartOpen(false)
+            window.open(
+                `${backendUrl}/api/admin/invoice/${response.data.invoiceId}`,
+                "_blank"
+            );
+            setInvoiceData({
+                memberId: "",
+                purchaserName: "",
+                paymentMethod: "cash",
+                paymentReceived: "",
+                discountAmount: "",
+                taxAmount: "",
+                notes: "",
+                dueDate: "",
+            });
+        }else{
+            toast.error(
+                response.data.message || "Unable to generate invoice!"
+            );
+        } 
+    } catch (error) {
+        console.log("Generate Invoice Error:", error);
+        console.log("Response:", error.response);
+
+        toast.error(
+            error.response?.data?.message ||
+            "Something went wrong while generating invoice!"
+        );
+    }finally {
+
+        setInvoiceLoading(false);
+
     }
   }
   
@@ -2339,6 +2440,8 @@ Continue
 
 <button
 
+onClick={() => setInvoicePopupOpen(true)}
+
 className="
 mt-5
 
@@ -2371,7 +2474,7 @@ disabled:opacity-50
 disabled:cursor-not-allowed
 "
 
-disabled={cart.length===0}
+disabled={cart.length === 0}
 
 >
 
@@ -2437,7 +2540,706 @@ background:#555;
 )
 
 }
+{
+invoicePopupOpen && (
 
+<>
+
+{/* ================= BACKDROP ================= */}
+
+<div
+    onClick={() => {
+        if (!invoiceLoading) {
+            setInvoicePopupOpen(false);
+        }
+    }}
+    className="
+    fixed
+    inset-0
+
+    bg-black/80
+    backdrop-blur-md
+
+    z-[80]
+    "
+/>
+
+
+{/* ================= INVOICE MODAL ================= */}
+
+<div
+className="
+fixed
+
+left-1/2
+top-1/2
+
+-translate-x-1/2
+-translate-y-1/2
+
+w-[850px]
+max-w-[95vw]
+
+max-h-[90vh]
+
+overflow-y-auto
+
+rounded-[32px]
+
+border
+border-[#2d2d2d]
+
+bg-gradient-to-b
+from-[#181818]
+via-[#111111]
+to-[#0b0b0b]
+
+shadow-[0_40px_120px_rgba(0,0,0,.7)]
+
+z-[90]
+
+"
+>
+
+{/* ================= HEADER ================= */}
+
+<div
+className="
+px-8
+py-7
+
+border-b
+border-[#252525]
+
+flex
+justify-between
+items-start
+"
+>
+
+<div>
+
+<p
+className="
+uppercase
+tracking-[4px]
+
+text-red-400
+text-xs
+font-bold
+"
+>
+
+Selling Module
+
+</p>
+
+<h2
+className="
+mt-2
+
+text-3xl
+
+font-black
+
+text-white
+"
+>
+
+Generate Invoice
+
+</h2>
+
+<p className="text-gray-500 mt-2">
+
+Enter purchaser and payment details.
+
+</p>
+
+</div>
+
+
+<button
+
+onClick={() => setInvoicePopupOpen(false)}
+
+disabled={invoiceLoading}
+
+className="
+w-12
+h-12
+
+rounded-2xl
+
+bg-[#1a1a1a]
+
+border
+border-[#303030]
+
+hover:bg-red-500
+
+transition-all
+
+flex
+items-center
+justify-center
+"
+
+>
+
+<X size={20}/>
+
+</button>
+
+</div>
+
+
+{/* ================= BODY ================= */}
+
+<div className="p-8">
+
+{/* Purchaser */}
+
+<div>
+
+<p
+className="
+text-white
+font-bold
+text-lg
+"
+>
+
+Purchaser Information
+
+</p>
+
+<p className="text-gray-500 text-sm mt-1">
+
+Member details are optional. Name is required for every sale.
+
+</p>
+
+</div>
+
+
+<div className="grid grid-cols-2 gap-5 mt-6">
+
+{/* Member ID */}
+
+<div>
+
+<label className="text-gray-400 text-sm">
+
+Member ID
+
+<span className="text-gray-600 ml-2">
+(Optional)
+</span>
+
+</label>
+
+<input
+
+type="text"
+
+name="memberId"
+
+value={invoiceData.memberId}
+
+onChange={invoiceInputChangeHandler}
+
+placeholder="Enter registered member ID"
+
+className="premiumInput mt-2"
+
+/>
+
+</div>
+
+
+{/* Purchaser Name */}
+
+<div>
+
+<label className="text-gray-400 text-sm">
+
+Purchaser Name
+
+<span className="text-red-400 ml-1">
+*
+</span>
+
+</label>
+
+<input
+
+type="text"
+
+name="purchaserName"
+
+value={invoiceData.purchaserName}
+
+onChange={invoiceInputChangeHandler}
+
+placeholder="Enter purchaser name"
+
+className="premiumInput mt-2"
+
+/>
+
+</div>
+
+</div>
+
+
+{/* ================= PAYMENT ================= */}
+
+<div className="mt-9">
+
+<p
+className="
+text-white
+font-bold
+text-lg
+"
+>
+
+Payment Information
+
+</p>
+
+</div>
+
+
+<div className="grid grid-cols-2 gap-5 mt-6">
+
+{/* Payment Method */}
+
+<div>
+
+<label className="text-gray-400 text-sm">
+
+Payment Method
+
+</label>
+
+<select
+
+name="paymentMethod"
+
+value={invoiceData.paymentMethod}
+
+onChange={invoiceInputChangeHandler}
+
+className="premiumInput mt-2"
+
+>
+
+<option value="cash">
+Cash
+</option>
+
+<option value="upi">
+UPI
+</option>
+
+<option value="card">
+Card
+</option>
+
+<option value="bank_transfer">
+Bank Transfer
+</option>
+
+<option value="other">
+Other
+</option>
+
+</select>
+
+</div>
+
+
+{/* Payment Received */}
+
+<div>
+
+<label className="text-gray-400 text-sm">
+
+Payment Received
+
+<span className="text-red-400 ml-1">
+*
+</span>
+
+</label>
+
+<input
+
+type="number"
+
+min="0"
+
+name="paymentReceived"
+
+value={invoiceData.paymentReceived}
+
+onChange={invoiceInputChangeHandler}
+
+placeholder="0"
+
+className="premiumInput mt-2"
+
+/>
+
+</div>
+
+</div>
+
+
+{/* Discount + Tax */}
+
+<div className="grid grid-cols-2 gap-5 mt-5">
+
+<div>
+
+<label className="text-gray-400 text-sm">
+
+Discount Amount
+
+</label>
+
+<input
+
+type="number"
+
+min="0"
+
+name="discountAmount"
+
+value={invoiceData.discountAmount}
+
+onChange={invoiceInputChangeHandler}
+
+placeholder="0"
+
+className="premiumInput mt-2"
+
+/>
+
+</div>
+
+
+<div>
+
+<label className="text-gray-400 text-sm">
+
+Tax Amount
+
+</label>
+
+<input
+
+type="number"
+
+min="0"
+
+name="taxAmount"
+
+value={invoiceData.taxAmount}
+
+onChange={invoiceInputChangeHandler}
+
+placeholder="0"
+
+className="premiumInput mt-2"
+
+/>
+
+</div>
+
+</div>
+
+
+{/* ================= NOTES ================= */}
+
+<div className="mt-5">
+
+<label className="text-gray-400 text-sm">
+
+Notes
+
+</label>
+
+<textarea
+
+name="notes"
+
+value={invoiceData.notes}
+
+onChange={invoiceInputChangeHandler}
+
+rows={4}
+
+placeholder="Optional notes for this invoice..."
+
+className="
+premiumInput
+mt-2
+resize-none
+"
+
+/>
+
+</div>
+
+
+{/* ================= DUE DATE ================= */}
+
+<div className="mt-5">
+
+<label className="text-gray-400 text-sm">
+
+Due Date
+
+<span className="text-gray-600 ml-2">
+(Optional)
+</span>
+
+</label>
+
+<input
+
+type="date"
+
+name="dueDate"
+
+value={invoiceData.dueDate}
+
+onChange={invoiceInputChangeHandler}
+
+className="premiumInput mt-2"
+
+/>
+
+</div>
+
+
+{/* ================= SUMMARY ================= */}
+
+<div
+className="
+mt-8
+
+rounded-3xl
+
+border
+border-[#292929]
+
+bg-[#151515]
+
+p-6
+"
+>
+
+<div className="flex justify-between">
+
+<span className="text-gray-500">
+Products
+</span>
+
+<span className="text-white font-semibold">
+{cart.length}
+</span>
+
+</div>
+
+
+<div className="flex justify-between mt-4">
+
+<span className="text-gray-500">
+Total Items
+</span>
+
+<span className="text-white font-semibold">
+
+{
+cart.reduce(
+(acc,item) => acc + item.quantity,
+0
+)
+}
+
+</span>
+
+</div>
+
+
+<div className="border-t border-[#292929] my-5"/>
+
+
+<div className="flex justify-between items-end">
+
+<div>
+
+<p
+className="
+uppercase
+tracking-[3px]
+
+text-gray-500
+text-xs
+"
+>
+
+Cart Total
+
+</p>
+
+<h2
+className="
+text-3xl
+font-black
+
+text-red-500
+
+mt-2
+"
+>
+
+₹{
+
+cart.reduce(
+
+(acc,item) =>
+acc + item.price * item.quantity,
+
+0
+
+)
+
+}
+
+</h2>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+
+{/* ================= FOOTER ================= */}
+
+<div
+className="
+border-t
+border-[#252525]
+
+px-8
+py-6
+
+flex
+justify-end
+gap-4
+"
+>
+
+<button
+
+onClick={() => setInvoicePopupOpen(false)}
+
+disabled={invoiceLoading}
+
+className="
+px-8
+h-12
+
+rounded-2xl
+
+bg-[#181818]
+
+border
+border-[#303030]
+
+hover:border-red-500/40
+
+transition-all
+
+text-white
+"
+
+>
+
+Cancel
+
+</button>
+
+
+<button
+
+onClick={generateInvoice}
+
+disabled={
+invoiceLoading ||
+cart.length === 0 ||
+!invoiceData.purchaserName.trim()
+}
+
+className="
+px-10
+h-12
+
+rounded-2xl
+
+bg-gradient-to-r
+
+from-red-700
+via-red-600
+to-red-500
+
+text-white
+
+font-bold
+
+hover:shadow-[0_15px_30px_rgba(255,0,0,.35)]
+
+transition-all
+
+disabled:opacity-50
+
+disabled:cursor-not-allowed
+"
+
+>
+
+{
+
+invoiceLoading
+
+?
+
+"Generating..."
+
+:
+
+"Generate Invoice"
+
+}
+
+</button>
+
+</div>
+
+</div>
+
+</>
+
+)
+}
 
       {
 openEditPopUp && (

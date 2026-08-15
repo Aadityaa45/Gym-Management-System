@@ -39,7 +39,7 @@ export const sidebarConfig = [
   },
   {
     name: "Invoices",
-    path: "/admin/invoices",
+    path: "/admin/manage-invoices",
     heading: "Bills and Invoices",
     subHeading: "History and record of bills and invoices",
     actionButton: "Generate Bill",

@@ -25,3 +25,6 @@ export const generateInvoice = async (req,res)=>{
                 console.error(error);
     }
 }
+
+
+//----------------------------------------------------THIS IS THE CONTROLLER TO FETCH ALL THE INVOICES BASED ON DIFFERENT FILTERS--------------------------------------------
