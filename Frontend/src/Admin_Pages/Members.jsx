@@ -3,10 +3,12 @@ import toast from "react-hot-toast";
 import axios from "axios"
 import { useContext } from "react";
 import { gymAppContext } from "../contexts/gymAuthContext";
+import { useNavigate } from "react-router-dom";
 
 // in this we have implemented the concept of pagination that means we will only got those data which we exactly want not every data
 
 const Members = () => {
+  const navigate = useNavigate()
   const [currentPage,setCurrentPage] = useState(1)
   const [members,setMembers] = useState([])
   const [totalPages,setTotalPages] = useState(1)
@@ -310,7 +312,7 @@ return (
     <div
         className="
             grid
-            grid-cols-[2.2fr_1.3fr_1.4fr_1.5fr_1fr_1fr]
+            grid-cols-[2.1fr_1.2fr_1.3fr_1.3fr_1.4fr_1fr_1fr]
             border-b
             border-white/10
             bg-black/20
@@ -330,6 +332,8 @@ return (
         <div>Plan</div>
 
         <div>Joining</div>
+
+        <div>Membership</div>
 
         <div>Status</div>
 
@@ -351,7 +355,7 @@ return (
                 key={member._id}
                 className="
                     grid
-                    grid-cols-[2.2fr_1.3fr_1.4fr_1.5fr_1fr_1fr]
+                    grid-cols-[2.1fr_1.2fr_1.3fr_1.3fr_1.4fr_1fr_1fr]
                     items-center
                     border-b
                     border-white/5
@@ -440,11 +444,138 @@ return (
 
                 {/* Joining */}
 
-                <div className="text-gray-300">
+                {/* <div className="text-gray-300">
 
                     {new Date(member.joiningdate).toLocaleDateString()}
 
-                </div>
+                </div> */}
+                <div className="text-gray-300">
+
+    {member.joiningDate
+        ? new Date(member.joiningDate).toLocaleDateString(
+            "en-IN",
+            {
+                day: "2-digit",
+                month: "short",
+                year: "numeric"
+            }
+        )
+        : "—"
+    }
+
+</div>
+
+<div>
+
+    {member.membershipDaysRemaining === null ? (
+
+        <span className="text-gray-500">
+            No Membership
+        </span>
+
+    ) : member.membershipDaysRemaining < 0 ? (
+
+        <div>
+
+            <span
+                className="
+                    inline-flex
+                    rounded-xl
+                    border
+                    border-red-500/20
+                    bg-red-500/10
+                    px-3
+                    py-2
+                    text-sm
+                    font-semibold
+                    text-red-400
+                "
+            >
+                Expired
+            </span>
+
+            <p className="mt-1 text-xs text-gray-500">
+                {Math.abs(member.membershipDaysRemaining)} days ago
+            </p>
+
+        </div>
+
+    ) : member.membershipDaysRemaining === 0 ? (
+
+        <span
+            className="
+                inline-flex
+                rounded-xl
+                border
+                border-orange-500/20
+                bg-orange-500/10
+                px-3
+                py-2
+                text-sm
+                font-semibold
+                text-orange-400
+            "
+        >
+            Expires Today
+        </span>
+
+    ) : member.membershipDaysRemaining <= 7 ? (
+
+        <div>
+
+            <span
+                className="
+                    inline-flex
+                    rounded-xl
+                    border
+                    border-orange-500/20
+                    bg-orange-500/10
+                    px-3
+                    py-2
+                    text-sm
+                    font-semibold
+                    text-orange-400
+                "
+            >
+                {member.membershipDaysRemaining} days left
+            </span>
+
+            <p className="mt-1 text-xs text-gray-500">
+                Renew soon
+            </p>
+
+        </div>
+
+    ) : (
+
+        <div>
+
+            <span
+                className="
+                    inline-flex
+                    rounded-xl
+                    border
+                    border-green-500/20
+                    bg-green-500/10
+                    px-3
+                    py-2
+                    text-sm
+                    font-semibold
+                    text-green-400
+                "
+            >
+                {member.membershipDaysRemaining} days left
+            </span>
+
+            <p className="mt-1 text-xs text-gray-500">
+                Active
+            </p>
+
+        </div>
+
+    )}
+
+</div>
 
                 {/* Status */}
 
@@ -485,6 +616,8 @@ return (
                             hover:-translate-y-1
                             hover:shadow-[0_15px_35px_rgba(239,68,68,.35)]
                         "
+                        onClick={()=>navigate(`/members/${member._id}`)}
+                        // onClick={()=>console.log(`Button triggered for ${member._id}`)}
                     >
 
                         Manage

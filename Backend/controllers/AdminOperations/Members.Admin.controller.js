@@ -137,190 +137,1246 @@ export const registerMember = async (req,res)=>{
     
 }
 
-//-------------------------------------------REGISTRATION OTP VERIFICATION AND MEMBER DATA SAVING IN DATABASE---------------------------------------------
-export const verifyRegistrationOtp = async (req,res) =>{
-    //lets implement transaction in this 
-    const session = await mongoose.startSession()
-    try{
-        session.startTransaction()
-        const gymId = req.gym.gymId
-        const {email,otp} = req.body
-        appAssert(email,"Email is Required!")
-        appAssert(otp,"OTP is Required!")
+// //-------------------------------------------REGISTRATION OTP VERIFICATION AND MEMBER DATA SAVING IN DATABASE---------------------------------------------
+// export const verifyRegistrationOtp = async (req,res) =>{
+//     //lets implement transaction in this 
+//     const session = await mongoose.startSession()
+//     try{
+//         session.startTransaction()
+//         const gymId = req.gym.gymId
+//         const {email,otp} = req.body
+//         appAssert(email,"Email is Required!")
+//         appAssert(otp,"OTP is Required!")
 
-        //lets store the verification result in a variable 
-       const verificationResult = await verifyOtpRecord({
-            gym:gymId,
-            email:email,
-            otp:otp,
-            purpose:"registration"
-        })
+//         //lets store the verification result in a variable 
+//        const verificationResult = await verifyOtpRecord({
+//             gym:gymId,
+//             email:email,
+//             otp:otp,
+//             purpose:"registration"
+//         })
 
-        //now we will generate a random password for the user and save it in the database after hashing it
-        const password = randomPasswordGenerator(8) // Generate a random password of length 8
+//         //now we will generate a random password for the user and save it in the database after hashing it
+//         const password = randomPasswordGenerator(8) // Generate a random password of length 8
 
-        //if the otp is verified then we will save the data in the database
-        if(verificationResult.verified){
-            const finalRegistrationData = new membersModel({
-                fullName: verificationResult.registrationData.fullname,
-                email: verificationResult.registrationData.email,
-                phone: verificationResult.registrationData.phone,
-                joiningdate: verificationResult.registrationData.joiningdate,
-                address: verificationResult.registrationData.address,
-                dob:verificationResult.registrationData.dob,
-                gym:gymId,
-                password: await bcrypt.hash(password, 12), // Hash the generated password
-                fee: verificationResult.registrationData.fee,
-                membership: verificationResult.registrationData.membership,
-                registeredBy: verificationResult.registrationData.registeredBy
+//         //if the otp is verified then we will save the data in the database
+//         if(verificationResult.verified){
+//             const finalRegistrationData = new membersModel({
+//                 fullName: verificationResult.registrationData.fullname,
+//                 email: verificationResult.registrationData.email,
+//                 phone: verificationResult.registrationData.phone,
+//                 joiningdate: verificationResult.registrationData.joiningdate,
+//                 address: verificationResult.registrationData.address,
+//                 dob:verificationResult.registrationData.dob,
+//                 gym:gymId,
+//                 password: await bcrypt.hash(password, 12), // Hash the generated password
+//                 fee: verificationResult.registrationData.fee,
+//                 membership: verificationResult.registrationData.membership,
+//                 registeredBy: verificationResult.registrationData.registeredBy
 
-            })
-            await finalRegistrationData.save({session})
+//             })
+//             await finalRegistrationData.save({session})
 
-            //now we will delete the otp record from the database as it is no longer needed
+//             //now we will delete the otp record from the database as it is no longer needed
 
-            await otpModel.deleteMany({
-                gym:gymId,
-                email:email,
-                purpose:"registration"
-            },
-            {session}
-        )
+//             await otpModel.deleteMany({
+//                 gym:gymId,
+//                 email:email,
+//                 purpose:"registration"
+//             },
+//             {session}
+//         )
 
-            //now lets generate the invoice const invoice =
-              const invoice =  await InvoiceService.generateInvoice({
+//             //now lets generate the invoice const invoice =
+//               const invoice =  await InvoiceService.generateInvoice({
 
+//                     gymId,
+
+//                     category:"membership",
+
+//                     memberId:finalRegistrationData._id,
+
+//                     membershipId:finalRegistrationData.membership.plan,
+
+//                     items:[],
+
+//                     amount:finalRegistrationData.fee.total,
+
+//                     discountAmount:finalRegistrationData.fee.discount,
+
+//                     paymentMethod:"upi",
+
+//                     paymentReceived:finalRegistrationData.fee.paid,
+
+//                     processedBy:finalRegistrationData.registeredBy,
+
+//                     session
+//                 })
+
+//                 await session.commitTransaction();
+
+//                 // Close Session
+//                 session.endSession();
+//             res.json({
+//                 success: true,
+//                 message: "Member Registered Successfully",
+//                 memberId: finalRegistrationData._id,
+//                 invoiceId: invoice._id
+//             });
+
+//             //now we will send the email to the user with his/her credentials and other details such as invoice/bill
+//             await EmailService.sendWelcomeEmail(verificationResult.registrationData.fullname, email, password,"Fitness Beast Gym & MMA")
+
+//         }
+
+//     }catch(error){
+//          await session.abortTransaction();
+//         session.endSession();
+
+//         if (error instanceof AppError) {
+//             return res.json({
+//                 success: false,
+//                 message: error.message
+//             });
+//         }
+
+//         console.error(error);
+
+//         return res.json({
+//             success: false,
+//             message: "Something went wrong while registering member."
+//         });
+//     }
+// }
+export const verifyRegistrationOtp = async (req, res) => {
+
+    const session = await mongoose.startSession();
+
+    try {
+
+        // --------------------------------------------------
+        // START TRANSACTION
+        // --------------------------------------------------
+
+        session.startTransaction();
+
+
+        // --------------------------------------------------
+        // GET GYM ID
+        // --------------------------------------------------
+
+        const gymId = req.gym?.gymId;
+
+        appAssert(
+            gymId,
+            "Gym information is required"
+        );
+
+
+        // --------------------------------------------------
+        // GET OTP DATA
+        // --------------------------------------------------
+
+        const {
+            email,
+            otp
+        } = req.body;
+
+
+        appAssert(
+            email,
+            "Email is Required!"
+        );
+
+        appAssert(
+            otp,
+            "OTP is Required!"
+        );
+
+
+        // --------------------------------------------------
+        // VERIFY OTP
+        // --------------------------------------------------
+
+        const verificationResult =
+            await verifyOtpRecord({
+
+                gym: gymId,
+
+                email: email,
+
+                otp: otp,
+
+                purpose: "registration"
+
+            });
+
+
+        appAssert(
+            verificationResult?.verified,
+            "Invalid or expired OTP"
+        );
+
+
+        // --------------------------------------------------
+        // GET REGISTRATION DATA
+        // --------------------------------------------------
+
+        const registrationData =
+            verificationResult.registrationData;
+
+
+        appAssert(
+            registrationData,
+            "Registration data not found"
+        );
+
+
+        // --------------------------------------------------
+        // FETCH MEMBERSHIP PLAN AGAIN
+        // --------------------------------------------------
+
+        const membershipPlan =
+            await MembershipPlanModel
+                .findOne({
+                    _id: registrationData.membership?.plan,
+                    gym: gymId
+                })
+                .lean();
+
+
+        appAssert(
+            membershipPlan,
+            "Membership Plan Not Found!"
+        );
+
+
+        // --------------------------------------------------
+        // CHECK PLAN STATUS
+        // --------------------------------------------------
+
+        appAssert(
+            membershipPlan.active === true,
+            "Membership Plan is not Active!"
+        );
+
+
+        // --------------------------------------------------
+        // VALIDATE PLAN DURATION
+        // --------------------------------------------------
+
+        appAssert(
+            Number.isFinite(
+                membershipPlan.durationInDays
+            ) &&
+            membershipPlan.durationInDays > 0,
+            "Membership Plan has invalid duration"
+        );
+
+
+        // --------------------------------------------------
+        // CONVERT JOINING DATE
+        // --------------------------------------------------
+
+        const planStartDate =
+            new Date(
+                registrationData.joiningdate
+            );
+
+
+        appAssert(
+            !isNaN(
+                planStartDate.getTime()
+            ),
+            "Invalid Joining Date"
+        );
+
+
+        // --------------------------------------------------
+        // CALCULATE MEMBERSHIP END DATE
+        // --------------------------------------------------
+
+        const planEndDate =
+            new Date(planStartDate);
+
+
+        planEndDate.setDate(
+            planEndDate.getDate() +
+            membershipPlan.durationInDays
+        );
+
+
+        // --------------------------------------------------
+        // GENERATE RANDOM PASSWORD
+        // --------------------------------------------------
+
+        const password =
+            randomPasswordGenerator(8);
+
+
+        const hashedPassword =
+            await bcrypt.hash(
+                password,
+                12
+            );
+
+
+        // --------------------------------------------------
+        // CREATE MEMBER
+        // --------------------------------------------------
+
+        const finalRegistrationData =
+            new membersModel({
+
+                fullName:
+                    registrationData.fullname,
+
+                email:
+                    registrationData.email,
+
+                phone:
+                    registrationData.phone,
+
+                // ------------------------------------------
+                // JOINING DATE
+                // ------------------------------------------
+
+                joiningdate:
+                    planStartDate,
+
+                address:
+                    registrationData.address,
+
+                dob:
+                    registrationData.dob,
+
+                gym:
                     gymId,
 
-                    category:"membership",
+                password:
+                    hashedPassword,
 
-                    memberId:finalRegistrationData._id,
+                fee:
+                    registrationData.fee,
 
-                    membershipId:finalRegistrationData.membership.plan,
+                // ------------------------------------------
+                // MEMBERSHIP
+                // ------------------------------------------
 
-                    items:[],
+                membership: {
 
-                    amount:finalRegistrationData.fee.total,
+                    plan:
+                        membershipPlan._id,
 
-                    discountAmount:finalRegistrationData.fee.discount,
+                    planStartDate:
+                        planStartDate,
 
-                    paymentMethod:"upi",
+                    planEndDate:
+                        planEndDate
 
-                    paymentReceived:finalRegistrationData.fee.paid,
+                },
 
-                    processedBy:finalRegistrationData.registeredBy,
+                registeredBy:
+                    registrationData.registeredBy
 
-                    session
-                })
-
-                await session.commitTransaction();
-
-                // Close Session
-                session.endSession();
-            res.json({
-                success: true,
-                message: "Member Registered Successfully",
-                memberId: finalRegistrationData._id,
-                invoiceId: invoice._id
             });
 
-            //now we will send the email to the user with his/her credentials and other details such as invoice/bill
-            await EmailService.sendWelcomeEmail(verificationResult.registrationData.fullname, email, password,"Fitness Beast Gym & MMA")
 
-        }
+        // --------------------------------------------------
+        // SAVE MEMBER
+        // --------------------------------------------------
 
-    }catch(error){
-         await session.abortTransaction();
+        await finalRegistrationData.save({
+            session
+        });
+
+
+        // --------------------------------------------------
+        // DELETE OTP
+        // --------------------------------------------------
+
+        await otpModel.deleteMany({
+
+            gym: gymId,
+
+            email: email,
+
+            purpose: "registration"
+
+        }, {
+            session
+        });
+
+
+        // --------------------------------------------------
+        // GENERATE MEMBERSHIP INVOICE
+        // --------------------------------------------------
+
+        const invoice =
+            await InvoiceService.generateInvoice({
+
+                gymId,
+
+                category: "membership",
+
+                memberId:
+                    finalRegistrationData._id,
+
+                membershipId:
+                    finalRegistrationData.membership.plan,
+
+                items: [],
+
+                amount:
+                    finalRegistrationData.fee.total,
+
+                discountAmount:
+                    finalRegistrationData.fee.discount,
+
+                paymentMethod:
+                    "upi",
+
+                paymentReceived:
+                    finalRegistrationData.fee.paid,
+
+                processedBy:
+                    finalRegistrationData.registeredBy,
+
+                session
+
+            });
+
+
+        // --------------------------------------------------
+        // COMMIT TRANSACTION
+        // --------------------------------------------------
+
+        await session.commitTransaction();
+
+
+        // --------------------------------------------------
+        // CLOSE SESSION
+        // --------------------------------------------------
+
         session.endSession();
 
-        if (error instanceof AppError) {
-            return res.json({
-                success: false,
-                message: error.message
-            });
-        }
 
-        console.error(error);
+        // --------------------------------------------------
+        // SEND RESPONSE
+        // --------------------------------------------------
 
-        return res.json({
-            success: false,
-            message: "Something went wrong while registering member."
+        res.status(200).json({
+
+            success: true,
+
+            message:
+                "Member Registered Successfully",
+
+            memberId:
+                finalRegistrationData._id,
+
+            invoiceId:
+                invoice._id,
+
+            membership: {
+
+                plan:
+                    membershipPlan.name,
+
+                startDate:
+                    planStartDate,
+
+                endDate:
+                    planEndDate,
+
+                durationInDays:
+                    membershipPlan.durationInDays
+
+            }
+
         });
-    }
-}
 
 
+        // --------------------------------------------------
+        // SEND WELCOME EMAIL
+        // --------------------------------------------------
 
-//-----------------------------------------------------CONTROLLER FOR FETCHING MEMBERS WITH PAGINATION AS WELL AS SEARCH WITH DEBOUNCING---------------------------------
-export const fetchMembers = async (req,res) =>{
-    try {
-        const gymId = req.gym.gymId
-        const page = Number(req.query.page)||1
-        const limit = Number(req.query.limit)||10
-        const search = req.query.search?.trim()
-        const memberShipPlan = req.query.plan
-        const status = req.query.status
-        const paymentStatus = req.query.payment
+        try {
 
-        const skip = (page-1)*limit
+            await EmailService.sendWelcomeEmail(
 
-        let filter = {
-            gym:gymId
+                registrationData.fullname,
+
+                email,
+
+                password,
+
+                "Fitness Beast Gym & MMA"
+
+            );
+
+        } catch (emailError) {
+
+            console.error(
+                "WELCOME EMAIL ERROR:",
+                emailError
+            );
+
         }
 
-        //if the search parameter exist in the url
-        if(search){
-            filter.fullName={
-                $regex: search,
-                $options:"i"
-            }
-        }
 
-        // Membership Plan Filter
-        if (memberShipPlan) {
-            filter["membership.plan"] = memberShipPlan;
-        }
-
-        // Status Filter
-        if (status) {
-            filter.status = status;
-        }
-
-        //payment filter
-        if(paymentStatus==="true"){
-            filter["fee.remaining"] = {
-                $gt:0
-            }
-        }
-
-        //total members 
-        const totalMembers = await membersModel.countDocuments(filter)
-        //now we will find the members based on the parameters
-        const members = await membersModel.find(filter)
-            .populate("membership.plan","name")
-            .sort({createdAt:-1})
-            .skip(skip)
-            .limit(limit)
-        
-        appAssert(members,"Doesnt'found Any Member")
-
-        return res.json({
-            success:true,
-            members,
-            pagination:{
-                totalMembers,
-                totalPages : Math.ceil(totalMembers/limit),
-                pageSize :limit,
-                currentPage:page
-            },
-        })
     } catch (error) {
+
+        // --------------------------------------------------
+        // ABORT TRANSACTION
+        // --------------------------------------------------
+
+        if (
+            session.inTransaction()
+        ) {
+
+            await session.abortTransaction();
+
+        }
+
+
+        session.endSession();
+
+
+        // --------------------------------------------------
+        // ERROR HANDLING
+        // --------------------------------------------------
+
+        console.error(
+            "VERIFY REGISTRATION ERROR:",
+            error
+        );
+
+
         if (error instanceof AppError) {
-                    return res.json({success: false, message:error.message});
-                }
-                console.error(error);
+
+            return res.status(
+                error.statusCode || 400
+            ).json({
+
+                success: false,
+
+                message:
+                    error.message
+
+            });
+
+        }
+
+
+        return res.status(500).json({
+
+            success: false,
+
+            message:
+                "Something went wrong while registering member."
+
+        });
+
     }
-}
+
+};
 
 
-//
+
+// //-----------------------------------------------------CONTROLLER FOR FETCHING MEMBERS WITH PAGINATION AS WELL AS SEARCH WITH DEBOUNCING---------------------------------
+// export const fetchMembers = async (req,res) =>{
+//     try {
+//         const gymId = req.gym.gymId
+//         const page = Number(req.query.page)||1
+//         const limit = Number(req.query.limit)||10
+//         const search = req.query.search?.trim()
+//         const memberShipPlan = req.query.plan
+//         const status = req.query.status
+//         const paymentStatus = req.query.payment
+
+//         const skip = (page-1)*limit
+
+//         let filter = {
+//             gym:gymId
+//         }
+
+//         //if the search parameter exist in the url
+//         if(search){
+//             filter.fullName={
+//                 $regex: search,
+//                 $options:"i"
+//             }
+//         }
+
+//         // Membership Plan Filter
+//         if (memberShipPlan) {
+//             filter["membership.plan"] = memberShipPlan;
+//         }
+
+//         // Status Filter
+//         if (status) {
+//             filter.status = status;
+//         }
+
+//         //payment filter
+//         if(paymentStatus==="true"){
+//             filter["fee.remaining"] = {
+//                 $gt:0
+//             }
+//         }
+
+//         //total members 
+//         const totalMembers = await membersModel.countDocuments(filter)
+//         //now we will find the members based on the parameters
+//         const members = await membersModel.find(filter)
+//             .populate("membership.plan","name")
+//             .sort({createdAt:-1})
+//             .skip(skip)
+//             .limit(limit)
+        
+//         appAssert(members,"Doesnt'found Any Member")
+
+//         return res.json({
+//             success:true,
+//             members,
+//             pagination:{
+//                 totalMembers,
+//                 totalPages : Math.ceil(totalMembers/limit),
+//                 pageSize :limit,
+//                 currentPage:page
+//             },
+//         })
+//     } catch (error) {
+//         if (error instanceof AppError) {
+//                     return res.json({success: false, message:error.message});
+//                 }
+//                 console.error(error);
+//     }
+// }
+
+
+// //
+export const fetchMembers = async (req, res) => {
+
+    try {
+
+        // --------------------------------------------------
+        // BASIC PARAMETERS
+        // --------------------------------------------------
+
+        const gymId = req.gym?.gymId;
+
+        appAssert(
+            gymId,
+            "Gym information is required"
+        );
+
+        const page = Math.max(
+            Number(req.query.page) || 1,
+            1
+        );
+
+        const limit = Math.min(
+            Math.max(
+                Number(req.query.limit) || 10,
+                1
+            ),
+            100
+        );
+
+        const search = req.query.search?.trim();
+
+        const memberShipPlan = req.query.plan?.trim();
+
+        const status = req.query.status?.trim();
+
+        const paymentStatus = req.query.payment;
+
+
+        // --------------------------------------------------
+        // PAGINATION
+        // --------------------------------------------------
+
+        const skip = (page - 1) * limit;
+
+
+        // --------------------------------------------------
+        // BASE FILTER
+        // --------------------------------------------------
+
+        const filter = {
+            gym: gymId
+        };
+
+
+        // --------------------------------------------------
+        // SEARCH
+        // --------------------------------------------------
+
+        if (search) {
+
+            filter.fullName = {
+                $regex: search.replace(
+                    /[.*+?^${}()|[\]\\]/g,
+                    "\\$&"
+                ),
+                $options: "i"
+            };
+
+        }
+
+
+        // --------------------------------------------------
+        // MEMBERSHIP PLAN FILTER
+        // --------------------------------------------------
+
+        if (memberShipPlan) {
+
+            filter["membership.plan"] = memberShipPlan;
+
+        }
+
+
+        // --------------------------------------------------
+        // STATUS FILTER
+        // --------------------------------------------------
+
+        if (status) {
+
+            filter.status = status;
+
+        }
+
+
+        // --------------------------------------------------
+        // PAYMENT FILTER
+        // --------------------------------------------------
+
+        if (paymentStatus === "true") {
+
+            filter["fee.remaining"] = {
+                $gt: 0
+            };
+
+        }
+
+
+        // --------------------------------------------------
+        // COUNT + FETCH IN PARALLEL
+        // --------------------------------------------------
+
+        const [totalMembers, members] = await Promise.all([
+
+            membersModel.countDocuments(filter),
+
+            membersModel
+                .find(filter)
+                .populate("membership.plan", "name durationInDays price")
+                .sort({
+                    createdAt: -1
+                })
+                .skip(skip)
+                .limit(limit)
+                .lean()
+
+        ]);
+
+
+        // --------------------------------------------------
+        // CALCULATE MEMBERSHIP INFORMATION
+        // --------------------------------------------------
+
+        const now = new Date();
+
+
+        const membersWithDetails = members.map((member) => {
+
+            let daysRemaining = null;
+
+            let membershipExpiryDate = null;
+
+            let membershipStatus = "not_assigned";
+
+
+            if (member.membership?.planEndDate) {
+
+                const expiryDate =
+                    new Date(member.membership.planEndDate);
+
+                membershipExpiryDate = expiryDate;
+
+
+                // Difference in milliseconds
+                const difference =
+                    expiryDate.getTime() - now.getTime();
+
+
+                // Convert milliseconds → days
+                daysRemaining =
+                    Math.ceil(
+                        difference /
+                        (1000 * 60 * 60 * 24)
+                    );
+
+
+                // --------------------------------------------------
+                // MEMBERSHIP STATUS
+                // --------------------------------------------------
+
+                if (daysRemaining < 0) {
+
+                    membershipStatus = "expired";
+
+                }
+                else if (daysRemaining === 0) {
+
+                    membershipStatus = "expires_today";
+
+                }
+                else if (daysRemaining <= 7) {
+
+                    membershipStatus = "expiring_soon";
+
+                }
+                else {
+
+                    membershipStatus = "active";
+
+                }
+
+            }
+
+
+            return {
+
+                ...member,
+
+                joiningDate: member.joiningdate || null,
+
+                membershipDaysRemaining: daysRemaining,
+
+                membershipExpiryDate,
+
+                membershipStatus
+
+            };
+
+        });
+
+
+        // --------------------------------------------------
+        // PAGINATION
+        // --------------------------------------------------
+
+        const totalPages =
+            Math.ceil(totalMembers / limit);
+
+
+        // --------------------------------------------------
+        // RESPONSE
+        // --------------------------------------------------
+
+        return res.status(200).json({
+
+            success: true,
+
+            members: membersWithDetails,
+
+            pagination: {
+
+                totalMembers,
+
+                totalPages,
+
+                pageSize: limit,
+
+                currentPage: page,
+
+                hasNextPage:
+                    page < totalPages,
+
+                hasPreviousPage:
+                    page > 1
+
+            }
+
+        });
+
+    }
+    catch (error) {
+
+        console.error(
+            "FETCH MEMBERS ERROR:",
+            error
+        );
+
+
+        if (error instanceof AppError) {
+
+            return res.status(
+                error.statusCode || 400
+            ).json({
+
+                success: false,
+
+                message: error.message
+
+            });
+
+        }
+
+
+        return res.status(500).json({
+
+            success: false,
+
+            message:
+                "Unable to fetch members"
+
+        });
+
+    }
+
+};
+
+//----------------------------------------------------------
+// GET COMPLETE MEMBER PROFILE
+//----------------------------------------------------------
+
+export const getMemberDetails = async (req, res) => {
+
+    try {
+
+        // --------------------------------------------------
+        // GET GYM ID
+        // --------------------------------------------------
+
+        const gymId = req.gym?.gymId;
+
+        appAssert(
+            gymId,
+            "Gym information is required"
+        );
+
+
+        // --------------------------------------------------
+        // GET MEMBER ID
+        // --------------------------------------------------
+
+        const { memberId } = req.params;
+
+        appAssert(
+            memberId,
+            "Member ID is required"
+        );
+
+        appAssert(
+            mongoose.Types.ObjectId.isValid(memberId),
+            "Invalid member ID"
+        );
+
+
+        // --------------------------------------------------
+        // FETCH MEMBER
+        // --------------------------------------------------
+
+        const member = await membersModel
+            .findOne({
+                _id: memberId,
+                gym: gymId
+            })
+            .select("-password")
+            .populate({
+                path: "membership.plan",
+                select: "name description features durationInDays price active"
+            })
+            .populate({
+                path: "diet.plan",
+                select: "name description"
+            })
+            .populate({
+                path: "workout.plan",
+                select: "name description"
+            })
+            .lean();
+
+
+        // --------------------------------------------------
+        // MEMBER NOT FOUND
+        // --------------------------------------------------
+
+        appAssert(
+            member,
+            "Member not found"
+        );
+
+
+        // --------------------------------------------------
+        // MEMBERSHIP INFORMATION
+        // --------------------------------------------------
+
+        const now = new Date();
+
+        let membershipDaysRemaining = null;
+        let membershipStatus = "not_assigned";
+        let membershipExpiryDate = null;
+
+
+        if (member.membership?.planEndDate) {
+
+            membershipExpiryDate =
+                new Date(member.membership.planEndDate);
+
+
+            const difference =
+                membershipExpiryDate.getTime() -
+                now.getTime();
+
+
+            membershipDaysRemaining =
+                Math.ceil(
+                    difference /
+                    (1000 * 60 * 60 * 24)
+                );
+
+
+            if (membershipDaysRemaining < 0) {
+
+                membershipStatus = "expired";
+
+            }
+            else if (membershipDaysRemaining === 0) {
+
+                membershipStatus = "expires_today";
+
+            }
+            else if (membershipDaysRemaining <= 7) {
+
+                membershipStatus = "expiring_soon";
+
+            }
+            else {
+
+                membershipStatus = "active";
+
+            }
+
+        }
+
+
+        // --------------------------------------------------
+        // PAYMENT SUMMARY
+        // --------------------------------------------------
+
+        const feeTotal =
+            Number(member.fee?.total || 0);
+
+        const feePaid =
+            Number(member.fee?.paid || 0);
+
+        const feeRemaining =
+            Number(member.fee?.remaining || 0);
+
+        const discount =
+            Number(member.fee?.discount || 0);
+
+
+        // --------------------------------------------------
+        // RESPONSE
+        // --------------------------------------------------
+
+        return res.status(200).json({
+
+            success: true,
+
+            member: {
+
+                // ==========================================
+                // BASIC INFORMATION
+                // ==========================================
+
+                _id: member._id,
+
+                fullName: member.fullName,
+
+                email: member.email,
+
+                phone: member.phone,
+
+                address: member.address,
+
+                dob: member.dob,
+
+                status: member.status,
+
+                joiningDate:
+                    member.joiningdate || null,
+
+                registrationDate:
+                    member.registrationdate || null,
+
+                registeredBy:
+                    member.registeredBy || null,
+
+
+                // ==========================================
+                // PHYSIQUE
+                // ==========================================
+
+                physique: {
+
+                    heightInCm:
+                        member.physique?.heightInCm ?? null,
+
+                    weightInKg:
+                        member.physique?.weightInKg ?? null,
+
+                    targetWeightInKg:
+                        member.physique?.targetWeightInKg ?? null
+
+                },
+
+
+                // ==========================================
+                // MEMBERSHIP
+                // ==========================================
+
+                membership: {
+
+                    plan:
+                        member.membership?.plan || null,
+
+                    planStartDate:
+                        member.membership?.planStartDate || null,
+
+                    planEndDate:
+                        member.membership?.planEndDate || null,
+
+                    daysRemaining:
+                        membershipDaysRemaining,
+
+                    status:
+                        membershipStatus
+
+                },
+
+
+                // ==========================================
+                // PAYMENT
+                // ==========================================
+
+                payment: {
+
+                    total:
+                        feeTotal,
+
+                    paid:
+                        feePaid,
+
+                    remaining:
+                        feeRemaining,
+
+                    discount:
+                        discount,
+
+                    paymentCompleted:
+                        feeRemaining <= 0
+
+                },
+
+
+                // ==========================================
+                // DIET
+                // ==========================================
+
+                diet: {
+
+                    plan:
+                        member.diet?.plan || null,
+
+                    startDate:
+                        member.diet?.planStartDate || null,
+
+                    endDate:
+                        member.diet?.planEndDate || null
+
+                },
+
+
+                // ==========================================
+                // WORKOUT
+                // ==========================================
+
+                workout: {
+
+                    plan:
+                        member.workout?.plan || null,
+
+                    startDate:
+                        member.workout?.planStartDate || null,
+
+                    endDate:
+                        member.workout?.planEndDate || null
+
+                },
+
+
+                // ==========================================
+                // ACCOUNT INFORMATION
+                // ==========================================
+
+                account: {
+
+                    lastLoginAt:
+                        member.lastLoginAt || null,
+
+                    createdAt:
+                        member.createdAt,
+
+                    updatedAt:
+                        member.updatedAt
+
+                }
+
+            }
+
+        });
+
+    }
+    catch (error) {
+
+        console.error(
+            "GET MEMBER DETAILS ERROR:",
+            error
+        );
+
+
+        if (error instanceof AppError) {
+
+            return res.status(
+                error.statusCode || 400
+            ).json({
+
+                success: false,
+
+                message:
+                    error.message
+
+            });
+
+        }
+
+
+        return res.status(500).json({
+
+            success: false,
+
+            message:
+                "Unable to fetch member details"
+
+        });
+
+    }
+
+};

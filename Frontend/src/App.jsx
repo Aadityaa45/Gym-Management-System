@@ -46,6 +46,7 @@ import AdminLoginPage from "./Auth_Pages/loginPage";
 import ProtectedAdminRoute from "./components/protectedRoutes";
 import Invoices from "./Admin_Pages/invoices";
 import ExpenseManagement from "./Admin_Pages/Expense";
+import ManageMember from "./Admin_Pages/ManageMenber";
 
 function App() {
 
@@ -113,6 +114,11 @@ function App() {
                         <Route
                             path="/admin/manage-expanses"
                             element = {<ExpenseManagement/>}
+                        />
+
+                        <Route
+                            path="/members/:memberId"
+                            element={<ManageMember />}
                         />
 
                     </Route>
