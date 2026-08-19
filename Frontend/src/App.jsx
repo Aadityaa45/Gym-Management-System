@@ -45,6 +45,7 @@ import AddNewProduct from "./Admin_Pages/addProduct";
 import AdminLoginPage from "./Auth_Pages/loginPage";
 import ProtectedAdminRoute from "./components/protectedRoutes";
 import Invoices from "./Admin_Pages/invoices";
+import ExpenseManagement from "./Admin_Pages/Expense";
 
 function App() {
 
@@ -107,6 +108,11 @@ function App() {
                         <Route
                             path="/admin/manage-invoices"
                             element = {<Invoices/>}
+                        />
+
+                        <Route
+                            path="/admin/manage-expanses"
+                            element = {<ExpenseManagement/>}
                         />
 
                     </Route>

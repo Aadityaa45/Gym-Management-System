@@ -46,4 +46,13 @@ export const sidebarConfig = [
     icon:HomeIcon,
     actionButtonRoute:"/admin/add-invoices"
   },
+  {
+    name: "Expanses",
+    path: "/admin/manage-expanses",
+    heading: "Expanses and Spending",
+    subHeading: "History and record of expenditures",
+    actionButton: "Add Expense",
+    icon:HomeIcon,
+    actionButtonRoute:"/admin/add-expense"
+  },
 ];
