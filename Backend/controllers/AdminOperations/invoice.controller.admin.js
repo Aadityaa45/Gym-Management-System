@@ -3,6 +3,7 @@ import { appAssert } from "../../utils/errorAssertion.utils.js";
 import invoiceTemplate from "../../templates/invoice.template.js";
 import { AppError } from "../../utils/errorAssertion.utils.js";
 import membersModel from "../../models/members.modals.js";
+import mongoose from "mongoose";
 
 //------------------------------------------THIS IS THE CONTROLLER TO FETCH THE DATA FOR THE INVOICE GENERATION--------------
 export const generateInvoice = async (req,res)=>{
@@ -65,6 +66,8 @@ export const searchInvoices = async (req, res) => {
             "No Authorized!!"
         );
 
+        const gymObjectId = new mongoose.Types.ObjectId(gymId);
+
 
         // --------------------------------------------------
         // GET FILTER PARAMETERS
@@ -78,7 +81,8 @@ export const searchInvoices = async (req, res) => {
             dateFrom,
             dateTo,
             minAmount,
-            maxAmount
+            maxAmount,
+            processedBy
         } = req.query;
 
 
@@ -87,7 +91,7 @@ export const searchInvoices = async (req, res) => {
         // --------------------------------------------------
 
         const filter = {
-            gym: gymId
+            gym: gymObjectId
         };
 
 
@@ -135,7 +139,14 @@ export const searchInvoices = async (req, res) => {
 
         }
 
+        if (processedBy && processedBy.trim()) {
 
+    filter.processedBy = {
+        $regex: processedBy.trim(),
+        $options: "i"
+    };
+
+}
         // --------------------------------------------------
         // CATEGORY FILTER
         // --------------------------------------------------
@@ -253,64 +264,72 @@ export const searchInvoices = async (req, res) => {
         // AMOUNT FILTER
         // --------------------------------------------------
 
-        if (
-            minAmount !== undefined ||
-            maxAmount !== undefined
-        ) {
+        // --------------------------------------------------
+// AMOUNT FILTER
+// --------------------------------------------------
 
-            filter.finalAmount = {};
+const hasMinAmount =
+    minAmount !== undefined &&
+    minAmount !== null &&
+    minAmount !== "";
+
+const hasMaxAmount =
+    maxAmount !== undefined &&
+    maxAmount !== null &&
+    maxAmount !== "";
+
+if (hasMinAmount || hasMaxAmount) {
+
+    filter.finalAmount = {};
+
+    if (hasMinAmount) {
+
+        const minimum = Number(minAmount);
+
+        appAssert(
+            Number.isFinite(minimum) &&
+            minimum >= 0,
+            "Invalid minimum amount"
+        );
+
+        filter.finalAmount.$gte = minimum;
+    }
+
+    if (hasMaxAmount) {
+
+        const maximum = Number(maxAmount);
+
+        appAssert(
+            Number.isFinite(maximum) &&
+            maximum >= 0,
+            "Invalid maximum amount"
+        );
+
+        filter.finalAmount.$lte = maximum;
+    }
+
+    // Check range only when both exist
+    if (
+        filter.finalAmount.$gte !== undefined &&
+        filter.finalAmount.$lte !== undefined
+    ) {
+
+        appAssert(
+            filter.finalAmount.$gte <=
+            filter.finalAmount.$lte,
+            "Minimum amount cannot be greater than maximum amount"
+        );
+    }
 
 
-            if (minAmount !== undefined) {
-
-                const minimum = Number(minAmount);
-
-                appAssert(
-                    Number.isFinite(minimum) &&
-                    minimum >= 0,
-                    "Invalid minimum amount"
-                );
-
-                filter.finalAmount.$gte = minimum;
-
-            }
-
-
-            if (maxAmount !== undefined) {
-
-                const maximum = Number(maxAmount);
-
-                appAssert(
-                    Number.isFinite(maximum) &&
-                    maximum >= 0,
-                    "Invalid maximum amount"
-                );
-
-                filter.finalAmount.$lte = maximum;
-
-            }
-
-
-            // --------------------------------------------------
-            // CHECK AMOUNT RANGE
-            // --------------------------------------------------
-
-            if (
-                filter.finalAmount.$gte !== undefined &&
-                filter.finalAmount.$lte !== undefined
-            ) {
-
-                appAssert(
-                    filter.finalAmount.$gte <=
-                    filter.finalAmount.$lte,
-                    "Minimum amount cannot be greater than maximum amount"
-                );
-
-            }
 
         }
 
+        console.log("REQ QUERY:", req.query);
 
+console.log("GYM ID:", gymId);
+
+console.log("FILTER:", filter);
         // --------------------------------------------------
         // FETCH INVOICES + PAGINATION + SUMMARY
         // --------------------------------------------------
@@ -595,6 +614,8 @@ export const searchInvoices = async (req, res) => {
 
 };
 
+
+//---------------------------------------------------------------THIS CONTROLLER FUNCTION IS TO SEARCH FOR THE MEMBERS IN THE INVOICE GENERATION---------------------------------
 export const searchMembersForInvoice = async (req, res) => {
     try {
 
@@ -618,7 +639,7 @@ export const searchMembersForInvoice = async (req, res) => {
 
                 $or: [
                     {
-                        name: {
+                        fullName: {
                             $regex: search,
                             $options: "i"
                         }

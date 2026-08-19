@@ -187,28 +187,75 @@ const Invoices = () => {
         return categories[category] || category;
     };
 
-    //This is the backend call function to fetch the invoices based on different filters and search parameters
-    const fetchInvoices = async () =>{
+    //this function is to view a original invoice copy of the selected invoice 
+    const viewDetailedInvoiceHandler = () =>{
         try {
             const backendUrl = import.meta.env.VITE_BACKEND_URL;
-            const response = await axios.get(`${backendUrl}/api/admin/invoice/fetch-invoices?page=${currentPage}&category=${filters.category}&status=${filters.status}&paymentMethos=${filters.paymentMethod}&fromDate=${filters.fromDate}&toDate=${filters.toDate}&minAmount=${filters.minAmount}&maxAmount=${filters.maxAmount}&processedBy=${filters.processedBy}`,
-                {
-                    withCredentials:true
-                }
-            )
-            if(response.data.success){
-                setInvoices(response.data.invoices)
-                // setTotalPages(response.data.pagination.totalPages)
-                setSummary(
-                response.data.summary
+            window.open(
+                `${backendUrl}/api/admin/invoice/${selectedInvoice._id}`,
+                "_blank"
             );
-
-            }
         } catch (error) {
-            console.log(error)
-            toast.error("Something went wrong!")
+            toast.error("Something went wrong")
         }
     }
+
+    //This is the backend call function to fetch the invoices based on different filters and search parameters
+    const fetchInvoices = async () => {
+
+    try {
+
+        const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
+        const response = await axios.get(
+            `${backendUrl}/api/admin/invoice/fetch-invoices`,
+            {
+                params: {
+                    page: currentPage,
+                    limit: 10,
+
+                    search: search.trim(),
+
+                    category: filters.category,
+                    status: filters.status,
+                    paymentMethod: filters.paymentMethod,
+
+                    dateFrom: filters.fromDate,
+                    dateTo: filters.toDate,
+
+                    minAmount: filters.minAmount,
+                    maxAmount: filters.maxAmount,
+
+                    processedBy: filters.processedBy
+                },
+
+                withCredentials: true
+            }
+        );
+
+        if (response.data.success) {
+
+            setInvoices(response.data.invoices);
+
+            setSummary(response.data.summary);
+
+            // Agar pagination state hai:
+            // setTotalPages(response.data.pagination.totalPages);
+        }
+
+    } catch (error) {
+
+        console.error(
+            "Fetch invoices error:",
+            error
+        );
+
+        toast.error(
+            error.response?.data?.message ||
+            "Something went wrong!"
+        );
+    }
+};
     // Debouncing
       useEffect(() => {
         const timer = setTimeout(() => {
@@ -218,7 +265,14 @@ const Invoices = () => {
         return () => {
           clearTimeout(timer);
         };
-      }, [search,currentPage]);
+      }, [search,currentPage,
+    filters.status,
+    filters.paymentMethod,
+    filters.fromDate,
+    filters.toDate,
+    filters.minAmount,
+    filters.maxAmount,
+    filters.processedBy]);
     
     return (
 
@@ -725,435 +779,748 @@ const Invoices = () => {
 
             {filterOpen && (
 
-                <>
+    <>
 
-                    <div
-                        onClick={() => setFilterOpen(false)}
-                        className="
-                            fixed
-                            inset-0
+        {/* BACKDROP */}
+        <div
+            onClick={() => setFilterOpen(false)}
+            className="
+                fixed inset-0
+                z-[80]
 
-                            bg-black/75
-                            backdrop-blur-md
-
-                            z-[80]
-                        "
-                    />
-
-
-                    <div className="
-                        fixed
-
-                        left-1/2
-                        top-1/2
-
-                        -translate-x-1/2
-                        -translate-y-1/2
-
-                        w-[650px]
-                        max-w-[95vw]
-
-                        max-h-[90vh]
-
-                        overflow-y-auto
-
-                        rounded-[32px]
-
-                        border
-                        border-[#2d2d2d]
-
-                        bg-gradient-to-b
-                        from-[#181818]
-                        via-[#111111]
-                        to-[#0b0b0b]
-
-                        shadow-[0_40px_120px_rgba(0,0,0,.7)]
-
-                        z-[90]
-                    ">
+                bg-black/80
+                backdrop-blur-sm
+            "
+        />
 
 
-                        {/* MODAL HEADER */}
+        {/* MODAL */}
+        <div
+            className="
+                fixed
+                left-1/2
+                top-1/2
 
-                        <div className="
-                            px-7
-                            py-6
+                -translate-x-1/2
+                -translate-y-1/2
 
-                            border-b
-                            border-[#252525]
+                z-[90]
 
-                            flex
-                            justify-between
-                            items-start
-                        ">
+                w-[680px]
+                max-w-[calc(100vw-32px)]
 
-                            <div>
+                max-h-[90vh]
 
-                                <p className="
-                                    uppercase
-                                    tracking-[4px]
-                                    text-red-400
-                                    text-xs
-                                    font-bold
-                                ">
-                                    Invoice Search
-                                </p>
+                overflow-hidden
 
-                                <h2 className="
-                                    text-2xl
-                                    font-black
-                                    text-white
-                                    mt-2
-                                ">
-                                    Advanced Filters
-                                </h2>
+                rounded-[24px]
 
-                                <p className="
-                                    text-gray-600
-                                    text-sm
-                                    mt-2
-                                ">
-                                    Narrow down invoices using billing parameters.
-                                </p>
+                border
+                border-white/[0.08]
 
-                            </div>
+                bg-[#111111]
 
+                shadow-[0_30px_100px_rgba(0,0,0,0.65)]
+            "
+        >
 
-                            <button
-                                onClick={() => setFilterOpen(false)}
+            {/* ================================================= */}
+            {/* HEADER */}
+            {/* ================================================= */}
+
+            <div
+                className="
+                    px-7
+                    py-6
+
+                    border-b
+                    border-white/[0.07]
+
+                    bg-[#131313]
+                "
+            >
+
+                <div
+                    className="
+                        flex
+                        items-start
+                        justify-between
+                    "
+                >
+
+                    <div>
+
+                        <div
+                            className="
+                                flex
+                                items-center
+                                gap-2
+                                mb-2
+                            "
+                        >
+
+                            <span
                                 className="
-                                    w-11
-                                    h-11
+                                    w-1.5
+                                    h-1.5
+                                    rounded-full
+                                    bg-red-500
+                                "
+                            />
 
-                                    rounded-xl
-
-                                    bg-[#1b1b1b]
-
-                                    border
-                                    border-[#303030]
-
-                                    hover:bg-red-500
-
-                                    text-gray-400
-                                    hover:text-white
-
-                                    flex
-                                    items-center
-                                    justify-center
+                            <span
+                                className="
+                                    text-[11px]
+                                    font-bold
+                                    uppercase
+                                    tracking-[3px]
+                                    text-red-400
                                 "
                             >
-
-                                <X size={19}/>
-
-                            </button>
+                                Invoice Search
+                            </span>
 
                         </div>
 
 
-                        {/* MODAL BODY */}
+                        <h2
+                            className="
+                                text-[25px]
+                                leading-tight
+                                font-bold
+                                tracking-tight
+                                text-white
+                            "
+                        >
+                            Advanced Filters
+                        </h2>
 
-                        <div className="p-7">
 
-                            {/* CATEGORY */}
+                        <p
+                            className="
+                                mt-2
+                                text-[13px]
+                                text-gray-500
+                            "
+                        >
+                            Refine invoices using billing and payment
+                            parameters.
+                        </p>
 
-                            <div>
+                    </div>
 
-                                <label className="
+
+                    {/* CLOSE */}
+                    <button
+                        type="button"
+                        onClick={() => setFilterOpen(false)}
+                        className="
+                            flex
+                            h-10
+                            w-10
+                            shrink-0
+                            items-center
+                            justify-center
+
+                            rounded-xl
+
+                            border
+                            border-white/[0.08]
+
+                            bg-white/[0.03]
+
+                            text-gray-500
+
+                            transition-all
+
+                            hover:border-red-500/30
+                            hover:bg-red-500/10
+                            hover:text-red-400
+                        "
+                    >
+
+                        <X size={18} />
+
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            {/* ================================================= */}
+            {/* BODY */}
+            {/* ================================================= */}
+
+            <div
+                className="
+                    max-h-[calc(90vh-170px)]
+                    overflow-y-auto
+
+                    px-7
+                    py-7
+
+                    scrollbar-thin
+                    scrollbar-thumb-white/10
+                    scrollbar-track-transparent
+                "
+            >
+
+                {/* ================================================= */}
+                {/* BILLING DETAILS */}
+                {/* ================================================= */}
+
+                <div className="mb-8">
+
+                    <div className="mb-4">
+
+                        <p
+                            className="
+                                text-[11px]
+                                font-bold
+                                uppercase
+                                tracking-[2px]
+                                text-gray-600
+                            "
+                        >
+                            Billing Details
+                        </p>
+
+                    </div>
+
+
+                    {/* CATEGORY */}
+                    <div>
+
+                        <label
+                            className="
+                                mb-2
+                                block
+
+                                text-[13px]
+                                font-medium
+                                text-gray-400
+                            "
+                        >
+                            Invoice Category
+                        </label>
+
+
+                        <select
+                            name="category"
+                            value={filters.category}
+                            onChange={filterChangeHandler}
+                            className="
+                                w-full
+                                h-12
+
+                                rounded-xl
+
+                                border
+                                border-white/[0.08]
+
+                                bg-[#181818]
+
+                                px-4
+
+                                text-sm
+                                text-gray-200
+
+                                outline-none
+
+                                transition-all
+
+                                focus:border-red-500/50
+                                focus:ring-2
+                                focus:ring-red-500/10
+
+                                cursor-pointer
+                            "
+                        >
+
+                            <option value="">
+                                All Categories
+                            </option>
+
+                            <option value="membership">
+                                Membership
+                            </option>
+
+                            <option value="product">
+                                Product
+                            </option>
+
+                            <option value="registration">
+                                Registration
+                            </option>
+
+                            <option value="other">
+                                Other
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    {/* STATUS + PAYMENT */}
+                    <div
+                        className="
+                            grid
+                            grid-cols-1
+                            sm:grid-cols-2
+                            gap-4
+
+                            mt-5
+                        "
+                    >
+
+                        {/* STATUS */}
+                        <div>
+
+                            <label
+                                className="
+                                    mb-2
+                                    block
+
+                                    text-[13px]
+                                    font-medium
                                     text-gray-400
+                                "
+                            >
+                                Payment Status
+                            </label>
+
+
+                            <select
+                                name="status"
+                                value={filters.status}
+                                onChange={filterChangeHandler}
+                                className="
+                                    w-full
+                                    h-12
+
+                                    rounded-xl
+
+                                    border
+                                    border-white/[0.08]
+
+                                    bg-[#181818]
+
+                                    px-4
+
                                     text-sm
-                                ">
-                                    Invoice Category
-                                </label>
+                                    text-gray-200
 
-                                <select
-                                    name="category"
-                                    value={filters.category}
-                                    onChange={filterChangeHandler}
-                                    className="premiumInput mt-2"
-                                >
+                                    outline-none
 
-                                    <option value="">
-                                        All Categories
-                                    </option>
+                                    transition-all
 
-                                    <option value="membership">
-                                        Membership
-                                    </option>
+                                    focus:border-red-500/50
+                                    focus:ring-2
+                                    focus:ring-red-500/10
 
-                                    <option value="product">
-                                        Product
-                                    </option>
+                                    cursor-pointer
+                                "
+                            >
 
-                                    <option value="registration">
-                                        Registration
-                                    </option>
+                                <option value="">
+                                    All Statuses
+                                </option>
 
-                                    <option value="other">
-                                        Other
-                                    </option>
+                                <option value="paid">
+                                    Paid
+                                </option>
 
-                                </select>
+                                <option value="pending">
+                                    Pending
+                                </option>
 
-                            </div>
+                                <option value="partially_paid">
+                                    Partially Paid
+                                </option>
 
+                                <option value="cancelled">
+                                    Cancelled
+                                </option>
 
-                            {/* STATUS + PAYMENT */}
+                            </select>
 
-                            <div className="
-                                grid
-                                grid-cols-2
-                                gap-5
-                                mt-5
-                            ">
-
-                                <div>
-
-                                    <label className="
-                                        text-gray-400
-                                        text-sm
-                                    ">
-                                        Payment Status
-                                    </label>
-
-                                    <select
-                                        name="status"
-                                        value={filters.status}
-                                        onChange={filterChangeHandler}
-                                        className="premiumInput mt-2"
-                                    >
-
-                                        <option value="">
-                                            All Statuses
-                                        </option>
-
-                                        <option value="paid">
-                                            Paid
-                                        </option>
-
-                                        <option value="pending">
-                                            Pending
-                                        </option>
-
-                                        <option value="partially_paid">
-                                            Partially Paid
-                                        </option>
-
-                                        <option value="cancelled">
-                                            Cancelled
-                                        </option>
-
-                                    </select>
-
-                                </div>
+                        </div>
 
 
-                                <div>
+                        {/* PAYMENT METHOD */}
+                        <div>
 
-                                    <label className="
-                                        text-gray-400
-                                        text-sm
-                                    ">
-                                        Payment Method
-                                    </label>
+                            <label
+                                className="
+                                    mb-2
+                                    block
 
-                                    <select
-                                        name="paymentMethod"
-                                        value={filters.paymentMethod}
-                                        onChange={filterChangeHandler}
-                                        className="premiumInput mt-2"
-                                    >
-
-                                        <option value="">
-                                            All Methods
-                                        </option>
-
-                                        <option value="cash">
-                                            Cash
-                                        </option>
-
-                                        <option value="upi">
-                                            UPI
-                                        </option>
-
-                                        <option value="card">
-                                            Card
-                                        </option>
-
-                                        <option value="bank_transfer">
-                                            Bank Transfer
-                                        </option>
-
-                                        <option value="other">
-                                            Other
-                                        </option>
-
-                                    </select>
-
-                                </div>
-
-                            </div>
+                                    text-[13px]
+                                    font-medium
+                                    text-gray-400
+                                "
+                            >
+                                Payment Method
+                            </label>
 
 
-                            {/* DATE RANGE */}
+                            <select
+                                name="paymentMethod"
+                                value={filters.paymentMethod}
+                                onChange={filterChangeHandler}
+                                className="
+                                    w-full
+                                    h-12
 
-                            <div className="mt-7">
+                                    rounded-xl
 
-                                <div className="
-                                    flex
-                                    items-center
-                                    gap-2
-                                ">
+                                    border
+                                    border-white/[0.08]
 
-                                    <CalendarDays
-                                        size={16}
-                                        className="text-red-400"
-                                    />
+                                    bg-[#181818]
 
-                                    <p className="
-                                        text-white
-                                        font-semibold
-                                    ">
-                                        Invoice Date
-                                    </p>
+                                    px-4
 
-                                </div>
+                                    text-sm
+                                    text-gray-200
 
+                                    outline-none
 
-                                <div className="
-                                    grid
-                                    grid-cols-2
-                                    gap-5
-                                    mt-4
-                                ">
+                                    transition-all
 
-                                    <div>
+                                    focus:border-red-500/50
+                                    focus:ring-2
+                                    focus:ring-red-500/10
 
-                                        <label className="
-                                            text-gray-500
-                                            text-xs
-                                        ">
-                                            From
-                                        </label>
+                                    cursor-pointer
+                                "
+                            >
 
-                                        <input
-                                            type="date"
-                                            name="fromDate"
-                                            value={filters.fromDate}
-                                            onChange={filterChangeHandler}
-                                            className="premiumInput mt-2"
-                                        />
+                                <option value="">
+                                    All Methods
+                                </option>
 
-                                    </div>
+                                <option value="cash">
+                                    Cash
+                                </option>
 
+                                <option value="upi">
+                                    UPI
+                                </option>
 
-                                    <div>
+                                <option value="card">
+                                    Card
+                                </option>
 
-                                        <label className="
-                                            text-gray-500
-                                            text-xs
-                                        ">
-                                            To
-                                        </label>
+                                <option value="bank_transfer">
+                                    Bank Transfer
+                                </option>
 
-                                        <input
-                                            type="date"
-                                            name="toDate"
-                                            value={filters.toDate}
-                                            onChange={filterChangeHandler}
-                                            className="premiumInput mt-2"
-                                        />
+                                <option value="other">
+                                    Other
+                                </option>
 
-                                    </div>
+                            </select>
 
-                                </div>
+                        </div>
 
-                            </div>
+                    </div>
+
+                </div>
 
 
-                            {/* AMOUNT RANGE */}
+                {/* ================================================= */}
+                {/* DATE */}
+                {/* ================================================= */}
 
-                            <div className="mt-7">
+                <div className="mb-8">
 
-                                <p className="
-                                    text-white
+                    <div
+                        className="
+                            flex
+                            items-center
+                            gap-2
+
+                            mb-4
+                        "
+                    >
+
+                        <div
+                            className="
+                                flex
+                                h-7
+                                w-7
+                                items-center
+                                justify-center
+
+                                rounded-lg
+
+                                bg-red-500/10
+
+                                text-red-400
+                            "
+                        >
+
+                            <CalendarDays size={14} />
+
+                        </div>
+
+
+                        <div>
+
+                            <p
+                                className="
+                                    text-sm
                                     font-semibold
-                                ">
-                                    Invoice Amount
-                                </p>
+                                    text-white
+                                "
+                            >
+                                Invoice Date
+                            </p>
 
-                                <div className="
-                                    grid
-                                    grid-cols-2
-                                    gap-5
-                                    mt-4
-                                ">
+                            <p
+                                className="
+                                    text-[11px]
+                                    text-gray-600
+                                "
+                            >
+                                Select a date range
+                            </p>
 
-                                    <div>
+                        </div>
 
-                                        <label className="
-                                            text-gray-500
-                                            text-xs
-                                        ">
-                                            Minimum Amount
-                                        </label>
-
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            name="minAmount"
-                                            value={filters.minAmount}
-                                            onChange={filterChangeHandler}
-                                            placeholder="₹0"
-                                            className="premiumInput mt-2"
-                                        />
-
-                                    </div>
+                    </div>
 
 
-                                    <div>
+                    <div
+                        className="
+                            grid
+                            grid-cols-1
+                            sm:grid-cols-2
+                            gap-4
+                        "
+                    >
 
-                                        <label className="
-                                            text-gray-500
-                                            text-xs
-                                        ">
-                                            Maximum Amount
-                                        </label>
+                        {/* FROM */}
+                        <div>
 
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            name="maxAmount"
-                                            value={filters.maxAmount}
-                                            onChange={filterChangeHandler}
-                                            placeholder="₹100000"
-                                            className="premiumInput mt-2"
-                                        />
+                            <label
+                                className="
+                                    mb-2
+                                    block
 
-                                    </div>
-
-                                </div>
-
-                            </div>
+                                    text-[12px]
+                                    font-medium
+                                    text-gray-500
+                                "
+                            >
+                                From Date
+                            </label>
 
 
-                            {/* PROCESSED BY */}
+                            <input
+                                type="date"
+                                name="fromDate"
+                                value={filters.fromDate}
+                                onChange={filterChangeHandler}
+                                className="
+                                    w-full
+                                    h-12
 
-                            <div className="mt-7">
+                                    rounded-xl
 
-                                <label className="
-                                    text-gray-400
+                                    border
+                                    border-white/[0.08]
+
+                                    bg-[#181818]
+
+                                    px-4
+
                                     text-sm
-                                ">
-                                    Processed By
-                                </label>
+                                    text-gray-300
+
+                                    outline-none
+
+                                    transition-all
+
+                                    focus:border-red-500/50
+                                    focus:ring-2
+                                    focus:ring-red-500/10
+
+                                    scheme-dark
+                                "
+                            />
+
+                        </div>
+
+
+                        {/* TO */}
+                        <div>
+
+                            <label
+                                className="
+                                    mb-2
+                                    block
+
+                                    text-[12px]
+                                    font-medium
+                                    text-gray-500
+                                "
+                            >
+                                To Date
+                            </label>
+
+
+                            <input
+                                type="date"
+                                name="toDate"
+                                value={filters.toDate}
+                                onChange={filterChangeHandler}
+                                className="
+                                    w-full
+                                    h-12
+
+                                    rounded-xl
+
+                                    border
+                                    border-white/[0.08]
+
+                                    bg-[#181818]
+
+                                    px-4
+
+                                    text-sm
+                                    text-gray-300
+
+                                    outline-none
+
+                                    transition-all
+
+                                    focus:border-red-500/50
+                                    focus:ring-2
+                                    focus:ring-red-500/10
+
+                                    scheme-dark
+                                "
+                            />
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                {/* ================================================= */}
+                {/* AMOUNT */}
+                {/* ================================================= */}
+
+                <div className="mb-8">
+
+                    <div className="mb-4">
+
+                        <p
+                            className="
+                                text-sm
+                                font-semibold
+                                text-white
+                            "
+                        >
+                            Invoice Amount
+                        </p>
+
+                        <p
+                            className="
+                                mt-1
+                                text-[11px]
+                                text-gray-600
+                            "
+                        >
+                            Define the minimum and maximum invoice value.
+                        </p>
+
+                    </div>
+
+
+                    <div
+                        className="
+                            grid
+                            grid-cols-1
+                            sm:grid-cols-2
+                            gap-4
+                        "
+                    >
+
+                        {/* MIN */}
+                        <div>
+
+                            <label
+                                className="
+                                    mb-2
+                                    block
+
+                                    text-[12px]
+                                    font-medium
+                                    text-gray-500
+                                "
+                            >
+                                Minimum Amount
+                            </label>
+
+
+                            <div className="relative">
+
+                                <span
+                                    className="
+                                        absolute
+                                        left-4
+                                        top-1/2
+                                        -translate-y-1/2
+
+                                        text-sm
+                                        text-gray-500
+                                    "
+                                >
+                                    ₹
+                                </span>
+
 
                                 <input
-                                    type="text"
-                                    name="processedBy"
-                                    value={filters.processedBy}
+                                    type="number"
+                                    min="0"
+                                    name="minAmount"
+                                    value={filters.minAmount}
                                     onChange={filterChangeHandler}
-                                    placeholder="Admin / Reception / Staff..."
-                                    className="premiumInput mt-2"
+                                    placeholder="0"
+                                    className="
+                                        w-full
+                                        h-12
+
+                                        rounded-xl
+
+                                        border
+                                        border-white/[0.08]
+
+                                        bg-[#181818]
+
+                                        pl-8
+                                        pr-4
+
+                                        text-sm
+                                        text-gray-200
+
+                                        placeholder:text-gray-700
+
+                                        outline-none
+
+                                        transition-all
+
+                                        focus:border-red-500/50
+                                        focus:ring-2
+                                        focus:ring-red-500/10
+                                    "
                                 />
 
                             </div>
@@ -1161,76 +1528,234 @@ const Invoices = () => {
                         </div>
 
 
-                        {/* MODAL FOOTER */}
+                        {/* MAX */}
+                        <div>
 
-                        <div className="
-                            px-7
-                            py-6
-
-                            border-t
-                            border-[#252525]
-
-                            flex
-                            justify-between
-                            items-center
-                        ">
-
-                            <button
-                                onClick={clearFilters}
+                            <label
                                 className="
-                                    flex
-                                    items-center
-                                    gap-2
+                                    mb-2
+                                    block
 
+                                    text-[12px]
+                                    font-medium
                                     text-gray-500
-
-                                    hover:text-red-400
-
-                                    transition
                                 "
                             >
-
-                                <RotateCcw size={16}/>
-
-                                Clear All
-
-                            </button>
+                                Maximum Amount
+                            </label>
 
 
-                            <button
-                                onClick={() => setFilterOpen(false)}
-                                className="
-                                    px-8
-                                    h-12
+                            <div className="relative">
 
-                                    rounded-2xl
+                                <span
+                                    className="
+                                        absolute
+                                        left-4
+                                        top-1/2
+                                        -translate-y-1/2
 
-                                    bg-gradient-to-r
-                                    from-red-700
-                                    to-red-500
+                                        text-sm
+                                        text-gray-500
+                                    "
+                                >
+                                    ₹
+                                </span>
 
-                                    text-white
 
-                                    font-bold
+                                <input
+                                    type="number"
+                                    min="0"
+                                    name="maxAmount"
+                                    value={filters.maxAmount}
+                                    onChange={filterChangeHandler}
+                                    placeholder="100000"
+                                    className="
+                                        w-full
+                                        h-12
 
-                                    hover:shadow-[0_15px_30px_rgba(239,68,68,.3)]
+                                        rounded-xl
 
-                                    transition-all
-                                "
-                            >
+                                        border
+                                        border-white/[0.08]
 
-                                Apply Filters
+                                        bg-[#181818]
 
-                            </button>
+                                        pl-8
+                                        pr-4
+
+                                        text-sm
+                                        text-gray-200
+
+                                        placeholder:text-gray-700
+
+                                        outline-none
+
+                                        transition-all
+
+                                        focus:border-red-500/50
+                                        focus:ring-2
+                                        focus:ring-red-500/10
+                                    "
+                                />
+
+                            </div>
 
                         </div>
 
                     </div>
 
-                </>
+                </div>
 
-            )}
 
+                {/* ================================================= */}
+                {/* PROCESSED BY */}
+                {/* ================================================= */}
+
+                <div>
+
+                    <label
+                        className="
+                            mb-2
+                            block
+
+                            text-[13px]
+                            font-medium
+                            text-gray-400
+                        "
+                    >
+                        Processed By
+                    </label>
+
+
+                    <input
+                        type="text"
+                        name="processedBy"
+                        value={filters.processedBy}
+                        onChange={filterChangeHandler}
+                        placeholder="Search admin, reception or staff..."
+                        className="
+                            w-full
+                            h-12
+
+                            rounded-xl
+
+                            border
+                            border-white/[0.08]
+
+                            bg-[#181818]
+
+                            px-4
+
+                            text-sm
+                            text-gray-200
+
+                            placeholder:text-gray-700
+
+                            outline-none
+
+                            transition-all
+
+                            focus:border-red-500/50
+                            focus:ring-2
+                            focus:ring-red-500/10
+                        "
+                    />
+
+                </div>
+
+            </div>
+
+
+            {/* ================================================= */}
+            {/* FOOTER */}
+            {/* ================================================= */}
+
+            <div
+                className="
+                    px-7
+                    py-5
+
+                    border-t
+                    border-white/[0.07]
+
+                    bg-[#131313]
+
+                    flex
+                    items-center
+                    justify-between
+
+                    gap-4
+                "
+            >
+
+                {/* CLEAR */}
+                <button
+                    type="button"
+                    onClick={clearFilters}
+                    className="
+                        flex
+                        items-center
+                        gap-2
+
+                        px-3
+                        py-2
+
+                        rounded-lg
+
+                        text-sm
+                        font-medium
+                        text-gray-500
+
+                        transition-all
+
+                        hover:bg-white/[0.04]
+                        hover:text-gray-300
+                    "
+                >
+
+                    <RotateCcw size={15} />
+
+                    Clear All
+
+                </button>
+
+
+                {/* APPLY */}
+                <button
+                    type="button"
+                    onClick={() => setFilterOpen(false)}
+                    className="
+                        h-11
+                        px-7
+
+                        rounded-xl
+
+                        bg-red-600
+
+                        text-sm
+                        font-semibold
+                        text-white
+
+                        shadow-[0_8px_25px_rgba(220,38,38,0.18)]
+
+                        transition-all
+
+                        hover:bg-red-500
+                        hover:shadow-[0_10px_30px_rgba(220,38,38,0.28)]
+
+                        active:scale-[0.98]
+                    "
+                >
+                    Apply Filters
+                </button>
+
+            </div>
+
+        </div>
+
+    </>
+
+)}
 
             {/* =========================================================
                             INVOICE DETAIL MODAL
@@ -1594,7 +2119,9 @@ const Invoices = () => {
                                     items-center
                                     justify-center
                                     gap-2
-                                ">
+                                "
+                                onClick={viewDetailedInvoiceHandler}
+                                >
 
                                     <Eye size={17}/>
 
