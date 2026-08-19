@@ -18,6 +18,9 @@ import {
     CalendarDays,
     RotateCcw
 } from "lucide-react";
+import toast from "react-hot-toast";
+import { useEffect } from "react";
+import axios from "axios"
 
 
 const Invoices = () => {
@@ -27,13 +30,10 @@ const Invoices = () => {
     // =========================================================
 
     const [search, setSearch] = useState("");
-
     const [filterOpen, setFilterOpen] = useState(false);
-
     const [currentPage, setCurrentPage] = useState(1);
-
     const [selectedInvoice, setSelectedInvoice] = useState(null);
-
+    const [invoices,setInvoices] = useState([])
     const [filters, setFilters] = useState({
         category: "",
         status: "",
@@ -44,136 +44,39 @@ const Invoices = () => {
         maxAmount: "",
         processedBy: ""
     });
-
-
-    // =========================================================
-    // TEMPORARY DATA
-    // Later this will come from backend
-    // =========================================================
-
-    const invoices = [
-        {
-            _id: "1",
-            billNumber: "INV-2026-00124",
-            invoiceTo: "Rahul Sharma",
-            category: "product",
-            amount: 2499,
-            discountAmount: 100,
-            taxAmount: 0,
-            finalAmount: 2399,
-            paymentReceived: 2399,
-            remainingAmount: 0,
-            status: "paid",
-            paymentMethod: "upi",
-            invoiceDate: "2026-08-15",
-            processedBy: "Admin",
-        },
-
-        {
-            _id: "2",
-            billNumber: "INV-2026-00123",
-            invoiceTo: "Aman Verma",
-            category: "membership",
-            amount: 12000,
-            discountAmount: 1000,
-            taxAmount: 0,
-            finalAmount: 11000,
-            paymentReceived: 6000,
-            remainingAmount: 5000,
-            status: "partially_paid",
-            paymentMethod: "cash",
-            invoiceDate: "2026-08-14",
-            processedBy: "Reception",
-        },
-
-        {
-            _id: "3",
-            billNumber: "INV-2026-00122",
-            invoiceTo: "Neha Singh",
-            category: "product",
-            amount: 1599,
-            discountAmount: 0,
-            taxAmount: 0,
-            finalAmount: 1599,
-            paymentReceived: 0,
-            remainingAmount: 1599,
-            status: "pending",
-            paymentMethod: "card",
-            invoiceDate: "2026-08-14",
-            processedBy: "Admin",
-        },
-
-        {
-            _id: "4",
-            billNumber: "INV-2026-00121",
-            invoiceTo: "Vikas Jain",
-            category: "registration",
-            amount: 2500,
-            discountAmount: 0,
-            taxAmount: 0,
-            finalAmount: 2500,
-            paymentReceived: 2500,
-            remainingAmount: 0,
-            status: "paid",
-            paymentMethod: "cash",
-            invoiceDate: "2026-08-13",
-            processedBy: "Reception",
-        },
-
-        {
-            _id: "5",
-            billNumber: "INV-2026-00120",
-            invoiceTo: "Rohit Mehta",
-            category: "product",
-            amount: 3499,
-            discountAmount: 0,
-            taxAmount: 0,
-            finalAmount: 3499,
-            paymentReceived: 0,
-            remainingAmount: 3499,
-            status: "cancelled",
-            paymentMethod: "upi",
-            invoiceDate: "2026-08-12",
-            processedBy: "Admin",
-        }
-    ];
-
-
+    const [summary, setSummary] = useState({
+        total: 0,
+        paid: 0,
+        pending: 0,
+        outstandingInvoices: 0
+    });
     // =========================================================
     // FILTER HANDLER
     // =========================================================
 
     const filterChangeHandler = (e) => {
-
         const { name, value } = e.target;
-
         setFilters((prev) => ({
             ...prev,
             [name]: value
         }));
-
         setCurrentPage(1);
     };
-
 
     // =========================================================
     // SEARCH
     // =========================================================
 
     const searchChangeHandler = (e) => {
-
         setSearch(e.target.value);
-
         setCurrentPage(1);
     };
-
 
     // =========================================================
     // CLEAR FILTERS
     // =========================================================
 
     const clearFilters = () => {
-
         setFilters({
             category: "",
             status: "",
@@ -184,64 +87,55 @@ const Invoices = () => {
             maxAmount: "",
             processedBy: ""
         });
-
         setSearch("");
-
         setCurrentPage(1);
     };
-
 
     // =========================================================
     // ACTIVE FILTER COUNT
     // =========================================================
-
     const activeFilterCount = Object.values(filters)
         .filter((value) => value !== "")
         .length;
-
 
     // =========================================================
     // SUMMARY
     // =========================================================
 
-    const summary = useMemo(() => {
+    // const summary = useMemo(() => {
 
-        const total = invoices.length;
+    //     const total = invoices.length;
 
-        const paid = invoices.filter(
-            (invoice) => invoice.status === "paid"
-        ).length;
+    //     const paid = invoices.filter(
+    //         (invoice) => invoice.status === "paid"
+    //     ).length;
 
-        const pending = invoices.filter(
-            (invoice) =>
-                invoice.status === "pending" ||
-                invoice.status === "partially_paid"
-        ).length;
+    //     const pending = invoices.filter(
+    //         (invoice) =>
+    //             invoice.status === "pending" ||
+    //             invoice.status === "partially_paid"
+    //     ).length;
 
-        const outstanding = invoices.reduce(
-            (total, invoice) =>
-                total + invoice.remainingAmount,
-            0
-        );
+    //     const outstanding = invoices.reduce(
+    //         (total, invoice) =>
+    //             total + invoice.remainingAmount,
+    //         0
+    //     );
 
-        return {
-            total,
-            paid,
-            pending,
-            outstanding
-        };
+    //     return {
+    //         total,
+    //         paid,
+    //         pending,
+    //         outstanding
+    //     };
 
-    }, [invoices]);
-
+    // }, [invoices]);
 
     // =========================================================
     // STATUS UI
     // =========================================================
-
     const getStatusStyle = (status) => {
-
         switch (status) {
-
             case "paid":
                 return {
                     label: "Paid",
@@ -249,7 +143,6 @@ const Invoices = () => {
                         "bg-emerald-500/10 border-emerald-500/20 text-emerald-400",
                     icon: CheckCircle2
                 };
-
             case "pending":
                 return {
                     label: "Pending",
@@ -257,7 +150,6 @@ const Invoices = () => {
                         "bg-amber-500/10 border-amber-500/20 text-amber-400",
                     icon: Clock3
                 };
-
             case "partially_paid":
                 return {
                     label: "Partially Paid",
@@ -265,7 +157,6 @@ const Invoices = () => {
                         "bg-blue-500/10 border-blue-500/20 text-blue-400",
                     icon: CreditCard
                 };
-
             case "cancelled":
                 return {
                     label: "Cancelled",
@@ -273,7 +164,6 @@ const Invoices = () => {
                         "bg-red-500/10 border-red-500/20 text-red-400",
                     icon: AlertCircle
                 };
-
             default:
                 return {
                     label: status,
@@ -283,25 +173,53 @@ const Invoices = () => {
                 };
         }
     };
-
-
     // =========================================================
     // CATEGORY UI
     // =========================================================
 
     const getCategoryLabel = (category) => {
-
         const categories = {
             membership: "Membership",
             product: "Product",
             registration: "Registration",
             other: "Other"
         };
-
         return categories[category] || category;
     };
 
+    //This is the backend call function to fetch the invoices based on different filters and search parameters
+    const fetchInvoices = async () =>{
+        try {
+            const backendUrl = import.meta.env.VITE_BACKEND_URL;
+            const response = await axios.get(`${backendUrl}/api/admin/invoice/fetch-invoices?page=${currentPage}&category=${filters.category}&status=${filters.status}&paymentMethos=${filters.paymentMethod}&fromDate=${filters.fromDate}&toDate=${filters.toDate}&minAmount=${filters.minAmount}&maxAmount=${filters.maxAmount}&processedBy=${filters.processedBy}`,
+                {
+                    withCredentials:true
+                }
+            )
+            if(response.data.success){
+                setInvoices(response.data.invoices)
+                // setTotalPages(response.data.pagination.totalPages)
+                setSummary(
+                response.data.summary
+            );
 
+            }
+        } catch (error) {
+            console.log(error)
+            toast.error("Something went wrong!")
+        }
+    }
+    // Debouncing
+      useEffect(() => {
+        const timer = setTimeout(() => {
+          fetchInvoices();
+        }, 500);
+    
+        return () => {
+          clearTimeout(timer);
+        };
+      }, [search,currentPage]);
+    
     return (
 
         <div className="min-h-screen pb-12">
@@ -311,953 +229,279 @@ const Invoices = () => {
             ===================================================== */}
 
             <div className="w-[95%] mx-auto">
-
-                <div className="
-                    flex
-                    justify-between
-                    items-start
-                    gap-6
-                ">
-
+                <div className="flex justify-between items-start gap-6">
                     <div>
-
-                        <p className="
-                            uppercase
-                            tracking-[4px]
-                            text-red-400
-                            text-xs
-                            font-bold
-                        ">
+                        <p className="uppercase tracking-[4px] text-red-400 text-xs font-bold">
                             Billing Center
                         </p>
-
-                        <h1 className="
-                            text-5xl
-                            font-black
-                            text-white
-                            mt-2
-                        ">
+                        <h1 className="text-5xl font-black text-white mt-2 ">
                             Invoices
                         </h1>
-
-                        <p className="
-                            text-gray-500
-                            mt-3
-                            text-lg
-                        ">
+                        <p className="text-gray-500 mt-3 text-lg">
                             Manage billing, payments and transaction history.
                         </p>
-
                     </div>
-
-
                     <button
-                        className="
-                            flex
-                            items-center
-                            gap-3
-
-                            px-6
-                            py-4
-
-                            rounded-2xl
-
-                            bg-gradient-to-r
-                            from-red-700
-                            to-red-500
-
-                            text-white
-                            font-bold
-
-                            shadow-[0_12px_30px_rgba(239,68,68,.25)]
-
-                            hover:scale-[1.02]
-
-                            transition-all
-                        "
+                        className="flex items-center gap-3 px-6 py-4 rounded-2xl bg-gradient-to-r from-red-700 to-red-500 text-white font-bold shadow-[0_12px_30px_rgba(239,68,68,.25)] hover:scale-[1.02] transition-all"
                     >
-
                         <Receipt size={20} />
-
                         Create Invoice
-
                     </button>
-
                 </div>
-
-
                 {/* =====================================================
                                 SUMMARY CARDS
                 ===================================================== */}
-
-                <div className="
-                    grid
-                    grid-cols-1
-                    sm:grid-cols-2
-                    xl:grid-cols-4
-                    gap-5
-                    mt-10
-                ">
-
-
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mt-10">
                     {/* TOTAL */}
-
-                    <div className="
-                        rounded-3xl
-                        border
-                        border-[#252525]
-                        bg-gradient-to-b
-                        from-[#181818]
-                        to-[#111111]
-                        p-6
-                    ">
-
-                        <div className="
-                            flex
-                            justify-between
-                            items-start
-                        ">
-
+                    <div className="rounded-3xl border border-[#252525] bg-gradient-to-b from-[#181818] to-[#111111] p-6">
+                        <div className="flex justify-between items-start">
                             <div>
-
-                                <p className="
-                                    text-gray-500
-                                    text-sm
-                                ">
+                                <p className="text-gray-500 text-sm">
                                     Total Invoices
                                 </p>
-
-                                <h2 className="
-                                    text-3xl
-                                    font-black
-                                    text-white
-                                    mt-3
-                                ">
+                                <h2 className="text-3xl font-black text-white mt-3">
                                     {summary.total}
                                 </h2>
-
                             </div>
-
-                            <div className="
-                                w-12
-                                h-12
-                                rounded-2xl
-                                bg-red-500/10
-                                border
-                                border-red-500/20
-                                flex
-                                items-center
-                                justify-center
-                            ">
-
+                            <div className="w-12 h-12 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
                                 <Receipt
                                     size={21}
                                     className="text-red-400"
                                 />
-
                             </div>
-
                         </div>
-
-                        <p className="
-                            text-gray-600
-                            text-xs
-                            mt-5
-                        ">
+                        <p className="text-gray-600 text-xs mt-5">
                             All generated invoices
                         </p>
-
                     </div>
-
-
                     {/* PAID */}
-
-                    <div className="
-                        rounded-3xl
-                        border
-                        border-[#252525]
-                        bg-gradient-to-b
-                        from-[#181818]
-                        to-[#111111]
-                        p-6
-                    ">
-
-                        <div className="
-                            flex
-                            justify-between
-                            items-start
-                        ">
-
+                    <div className="rounded-3xl border border-[#252525] bg-gradient-to-b from-[#181818] to-[#111111] p-6">
+                        <div className="flex justify-between items-start">
                             <div>
-
-                                <p className="
-                                    text-gray-500
-                                    text-sm
-                                ">
+                                <p className="text-gray-500 text-sm">
                                     Paid Invoices
                                 </p>
-
-                                <h2 className="
-                                    text-3xl
-                                    font-black
-                                    text-emerald-400
-                                    mt-3
-                                ">
+                                <h2 className="text-3xl font-black text-emerald-400 mt-3">
                                     {summary.paid}
                                 </h2>
-
                             </div>
-
-                            <div className="
-                                w-12
-                                h-12
-                                rounded-2xl
-                                bg-emerald-500/10
-                                border
-                                border-emerald-500/20
-                                flex
-                                items-center
-                                justify-center
-                            ">
-
+                            <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
                                 <CheckCircle2
                                     size={21}
                                     className="text-emerald-400"
                                 />
-
                             </div>
-
                         </div>
-
-                        <p className="
-                            text-gray-600
-                            text-xs
-                            mt-5
-                        ">
+                        <p className="text-gray-600 text-xs mt-5">
                             Successfully completed payments
                         </p>
-
                     </div>
-
-
                     {/* PENDING */}
-
-                    <div className="
-                        rounded-3xl
-                        border
-                        border-[#252525]
-                        bg-gradient-to-b
-                        from-[#181818]
-                        to-[#111111]
-                        p-6
-                    ">
-
-                        <div className="
-                            flex
-                            justify-between
-                            items-start
-                        ">
-
+                    <div className="rounded-3xl border border-[#252525] bg-gradient-to-b from-[#181818] to-[#111111] p-6">
+                        <div className="flex justify-between items-start">
                             <div>
-
-                                <p className="
-                                    text-gray-500
-                                    text-sm
-                                ">
+                                <p className="text-gray-500 text-sm">
                                     Pending Payments
                                 </p>
-
-                                <h2 className="
-                                    text-3xl
-                                    font-black
-                                    text-amber-400
-                                    mt-3
-                                ">
+                                <h2 className="text-3xl font-black text-amber-400 mt-3">
                                     {summary.pending}
                                 </h2>
-
                             </div>
-
-                            <div className="
-                                w-12
-                                h-12
-                                rounded-2xl
-                                bg-amber-500/10
-                                border
-                                border-amber-500/20
-                                flex
-                                items-center
-                                justify-center
-                            ">
-
+                            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
                                 <Clock3
                                     size={21}
                                     className="text-amber-400"
                                 />
-
                             </div>
-
                         </div>
-
-                        <p className="
-                            text-gray-600
-                            text-xs
-                            mt-5
-                        ">
+                        <p className="text-gray-600 text-xs mt-5">
                             Pending or partially paid
                         </p>
-
                     </div>
-
-
                     {/* OUTSTANDING */}
-
-                    <div className="
-                        rounded-3xl
-                        border
-                        border-[#252525]
-                        bg-gradient-to-b
-                        from-[#181818]
-                        to-[#111111]
-                        p-6
-                    ">
-
-                        <div className="
-                            flex
-                            justify-between
-                            items-start
-                        ">
-
+                    <div className="rounded-3xl border border-[#252525] bg-gradient-to-b from-[#181818] to-[#111111] p-6">
+                        <div className="flex justify-between items-start">
                             <div>
-
-                                <p className="
-                                    text-gray-500
-                                    text-sm
-                                ">
+                                <p className="text-gray-500 text-sm">
                                     Outstanding Amount
                                 </p>
-
-                                <h2 className="
-                                    text-3xl
-                                    font-black
-                                    text-red-400
-                                    mt-3
-                                ">
-                                    ₹{summary.outstanding.toLocaleString()}
+                                <h2 className="text-3xl font-black text-red-400 mt-3">
+                                    ₹{summary.outstandingInvoices.toLocaleString()}
                                 </h2>
-
                             </div>
-
-                            <div className="
-                                w-12
-                                h-12
-                                rounded-2xl
-                                bg-red-500/10
-                                border
-                                border-red-500/20
-                                flex
-                                items-center
-                                justify-center
-                            ">
-
+                            <div className="w-12 h-12 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
                                 <AlertCircle
                                     size={21}
                                     className="text-red-400"
                                 />
-
                             </div>
-
                         </div>
-
-                        <p className="
-                            text-gray-600
-                            text-xs
-                            mt-5
-                        ">
+                        <p className="text-gray-600 text-xs mt-5">
                             Amount yet to be collected
                         </p>
-
                     </div>
-
                 </div>
-
-
                 {/* =====================================================
                             SEARCH + FILTER TOOLBAR
                 ===================================================== */}
-
                 <div className="
-                    mt-10
-
-                    rounded-3xl
-
-                    border
-                    border-[#252525]
-
-                    bg-gradient-to-b
-                    from-[#181818]
-                    to-[#101010]
-
-                    p-5
-                ">
-
-                    <div className="
-                        flex
-                        gap-4
-                        items-center
-                    ">
-
-
+                    mt-10 rounded-3xl border border-[#252525] bg-gradient-to-b from-[#181818] to-[#101010] p-5">
+                    <div className="flex gap-4 items-center">
                         {/* SEARCH */}
-
-                        <div className="
-                            relative
-                            flex-1
-                        ">
-
+                        <div className="relative flex-1">
                             <Search
                                 size={20}
-                                className="
-                                    absolute
-                                    left-5
-                                    top-1/2
-                                    -translate-y-1/2
-                                    text-gray-500
-                                "
+                                className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-500"
                             />
-
-                            <input
-                                type="search"
-                                value={search}
-                                onChange={searchChangeHandler}
-                                placeholder="
-                                    Search invoice number, customer or transaction...
-                                "
-                                className="
-                                    w-full
-                                    h-14
-
-                                    pl-14
-                                    pr-5
-
-                                    rounded-2xl
-
-                                    bg-[#0d0d0d]
-
-                                    border
-                                    border-[#292929]
-
-                                    text-white
-
-                                    placeholder:text-gray-600
-
-                                    outline-none
-
-                                    focus:border-red-500
-
-                                    focus:ring-4
-                                    focus:ring-red-500/10
-
-                                    transition-all
-                                "
+                            <input type="search" value={search} onChange={searchChangeHandler}
+                                placeholder="Search invoice number, customer or transaction..."
+                                className="w-full h-14 pl-14 pr-5 rounded-2xl bg-[#0d0d0d] border border-[#292929] text-white placeholder:text-gray-600 outline-none focus:border-red-500 focus:ring-4 focus:ring-red-500/10 transition-all"
                             />
-
                         </div>
-
-
                         {/* FILTER BUTTON */}
-
                         <button
                             onClick={() => setFilterOpen(true)}
-                            className="
-                                h-14
-
-                                px-6
-
-                                rounded-2xl
-
-                                border
-                                border-[#303030]
-
-                                bg-[#181818]
-
-                                text-gray-300
-
-                                flex
-                                items-center
-                                gap-3
-
-                                hover:border-red-500/40
-                                hover:text-white
-
-                                transition-all
-                            "
+                            className="h-14 px-6 rounded-2xl border border-[#303030] bg-[#181818] text-gray-300 flex items-center gap-3 hover:border-red-500/40 hover:text-white transition-all"
                         >
-
                             <SlidersHorizontal size={19} />
-
                             Filters
-
                             {activeFilterCount > 0 && (
-
-                                <span className="
-                                    w-6
-                                    h-6
-                                    rounded-full
-
-                                    bg-red-600
-
-                                    text-white
-
-                                    text-xs
-                                    font-bold
-
-                                    flex
-                                    items-center
-                                    justify-center
-                                ">
-
+                                <span className="w-6 h-6 rounded-full bg-red-600 text-white text-xs font-bold flex items-center justify-center">
                                     {activeFilterCount}
-
                                 </span>
-
                             )}
-
                         </button>
-
-
                         {/* RESET */}
 
                         {(search || activeFilterCount > 0) && (
-
-                            <button
-                                onClick={clearFilters}
-                                className="
-                                    h-14
-                                    w-14
-
-                                    rounded-2xl
-
-                                    border
-                                    border-[#303030]
-
-                                    bg-[#181818]
-
-                                    text-gray-500
-
-                                    hover:text-red-400
-                                    hover:border-red-500/30
-
-                                    flex
-                                    items-center
-                                    justify-center
-
-                                    transition-all
-                                "
-                            >
-
+                            <button onClick={clearFilters} className="h-14 w-14 rounded-2xl border border-[#303030] bg-[#181818] text-gray-500 hover:text-red-400 hover:border-red-500/30 flex items-center justify-center transition-all ">
                                 <RotateCcw size={18} />
-
                             </button>
-
                         )}
-
                     </div>
-
                 </div>
-
-
                 {/* =====================================================
                                 TABLE
                 ===================================================== */}
-
-                <div className="
-                    mt-8
-
-                    rounded-3xl
-
-                    border
-                    border-[#252525]
-
-                    bg-gradient-to-b
-                    from-[#171717]
-                    to-[#101010]
-
-                    overflow-hidden
-                ">
-
-
+                <div className="mt-8 rounded-3x border border-[#252525] bg-gradient-to-b from-[#171717] to-[#101010] overflow-hidden">
                     {/* TABLE HEADER */}
-
-                    <div className="
-                        px-7
-                        py-6
-
-                        border-b
-                        border-[#252525]
-
-                        flex
-                        justify-between
-                        items-center
-                    ">
-
+                    <div className="px-7 py-6 border-b border-[#252525] flex justify-between items-center">
                         <div>
-
-                            <h2 className="
-                                text-xl
-                                font-bold
-                                text-white
-                            ">
+                            <h2 className="text-xlfont-boldtext-white">
                                 Invoice History
                             </h2>
-
-                            <p className="
-                                text-gray-600
-                                text-sm
-                                mt-1
-                            ">
+                            <p className="text-gray-600 text-sm mt-1">
                                 All billing transactions
                             </p>
-
                         </div>
-
-
-                        <div className="
-                            text-sm
-                            text-gray-500
-                        ">
-
+                        <div className="text-sm text-gray-500">
                             Showing
-
-                            <span className="
-                                text-white
-                                font-semibold
-                                mx-1
-                            ">
+                            <span className="text-white font-semibold mx-1">
                                 {invoices.length}
                             </span>
-
                             invoices
-
                         </div>
-
                     </div>
-
-
                     {/* TABLE */}
-
                     <div className="overflow-x-auto">
-
                         <table className="w-full">
-
                             <thead>
-
-                                <tr className="
-                                    text-left
-                                    text-xs
-                                    uppercase
-                                    tracking-[2px]
-                                    text-gray-600
-
-                                    border-b
-                                    border-[#252525]
-                                ">
-
-                                    <th className="px-7 py-5">
-                                        Invoice
-                                    </th>
-
-                                    <th className="px-5 py-5">
-                                        Customer
-                                    </th>
-
-                                    <th className="px-5 py-5">
-                                        Category
-                                    </th>
-
-                                    <th className="px-5 py-5">
-                                        Amount
-                                    </th>
-
-                                    <th className="px-5 py-5">
-                                        Payment
-                                    </th>
-
-                                    <th className="px-5 py-5">
-                                        Status
-                                    </th>
-
-                                    <th className="px-5 py-5">
-                                        Date
-                                    </th>
-
-                                    <th className="px-7 py-5 text-right">
-                                        Action
-                                    </th>
-
+                                <tr className="text-left text-xs uppercase tracking-[2px] text-gray-600 border-b border-[#252525]">
+                                    <th className="px-7 py-5">Invoice</th>
+                                    <th className="px-5 py-5">Customer</th>
+                                    <th className="px-5 py-5">Category</th>
+                                    <th className="px-5 py-5">Amount</th>
+                                    <th className="px-5 py-5">Payment</th>
+                                    <th className="px-5 py-5">Status</th>
+                                    <th className="px-5 py-5">Date</th>
+                                    <th className="px-7 py-5 text-right">Action</th>
                                 </tr>
-
                             </thead>
-
-
                             <tbody>
-
                                 {invoices.map((invoice) => {
-
-                                    const status =
-                                        getStatusStyle(invoice.status);
-
-                                    const StatusIcon =
-                                        status.icon;
-
+                                    const status = getStatusStyle(invoice.status);
+                                    const StatusIcon =status.icon;
                                     return (
-
                                         <tr
                                             key={invoice._id}
-                                            className="
-                                                border-b
-                                                border-[#202020]
-
-                                                hover:bg-[#181818]
-
-                                                transition-colors
-                                            "
+                                            className="border-b border-[#202020] hover:bg-[#181818] transition-colors"
                                         >
-
                                             {/* BILL NUMBER */}
-
                                             <td className="px-7 py-6">
-
-                                                <div className="
-                                                    flex
-                                                    items-center
-                                                    gap-3
-                                                ">
-
-                                                    <div className="
-                                                        w-10
-                                                        h-10
-                                                        rounded-xl
-
-                                                        bg-red-500/10
-
-                                                        border
-                                                        border-red-500/20
-
-                                                        flex
-                                                        items-center
-                                                        justify-center
-                                                    ">
-
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
                                                         <Receipt
                                                             size={17}
                                                             className="text-red-400"
                                                         />
-
                                                     </div>
-
                                                     <div>
-
-                                                        <p className="
-                                                            text-white
-                                                            font-bold
-                                                        ">
-
+                                                        <p className="text-white font-bold">
                                                             {invoice.billNumber}
-
                                                         </p>
-
-                                                        <p className="
-                                                            text-gray-600
-                                                            text-xs
-                                                            mt-1
-                                                        ">
-
+                                                        <p className="text-gray-600 text-xs mt-1">
                                                             #{invoice._id}
-
                                                         </p>
-
                                                     </div>
-
                                                 </div>
-
                                             </td>
-
-
                                             {/* CUSTOMER */}
-
                                             <td className="px-5 py-6">
-
-                                                <p className="
-                                                    text-white
-                                                    font-medium
-                                                ">
-
+                                                <p className="text-white font-medium">
                                                     {invoice.invoiceTo}
-
                                                 </p>
-
-                                                <p className="
-                                                    text-gray-600
-                                                    text-xs
-                                                    mt-1
-                                                ">
-
+                                                <p className="text-gray-600 text-xs mt-1">
                                                     Processed by {invoice.processedBy}
-
                                                 </p>
-
                                             </td>
-
-
                                             {/* CATEGORY */}
-
                                             <td className="px-5 py-6">
-
-                                                <span className="
-                                                    px-3
-                                                    py-1.5
-
-                                                    rounded-full
-
-                                                    bg-[#1d1d1d]
-
-                                                    border
-                                                    border-[#303030]
-
-                                                    text-gray-400
-
-                                                    text-xs
-                                                    font-semibold
-                                                ">
-
+                                                <span className="px-3 py-1.5 rounded-full bg-[#1d1d1d] border border-[#303030] text-gray-400 text-xs font-semibold">
                                                     {getCategoryLabel(
                                                         invoice.category
                                                     )}
-
                                                 </span>
-
                                             </td>
-
-
                                             {/* AMOUNT */}
-
                                             <td className="px-5 py-6">
-
-                                                <p className="
-                                                    text-white
-                                                    font-black
-                                                    text-lg
-                                                ">
-
-                                                    ₹
-                                                    {invoice.finalAmount.toLocaleString()}
-
+                                                <p className="text-white font-black text-lg">
+                                                    ₹{invoice.finalAmount.toLocaleString()}
                                                 </p>
-
                                                 {invoice.discountAmount > 0 && (
-
-                                                    <p className="
-                                                        text-gray-600
-                                                        text-xs
-                                                        mt-1
-                                                    ">
-
-                                                        Discount ₹
-                                                        {invoice.discountAmount}
-
+                                                    <p className="text-gray-600 text-xs mt-1">
+                                                        Discount ₹{invoice.discountAmount}
                                                     </p>
-
                                                 )}
-
                                             </td>
-
-
                                             {/* PAYMENT */}
-
                                             <td className="px-5 py-6">
-
-                                                <p className="
-                                                    text-gray-300
-                                                    capitalize
-                                                    font-medium
-                                                ">
-
+                                                <p className="text-gray-300 capitalize font-medium">
                                                     {invoice.paymentMethod
                                                         ?.replace("_", " ")}
-
                                                 </p>
-
-                                                <p className="
-                                                    text-gray-600
-                                                    text-xs
-                                                    mt-1
-                                                ">
-
-                                                    Received ₹
-                                                    {invoice.paymentReceived.toLocaleString()}
-
+                                                <p className="text-gray-600 text-xs mt-1">
+                                                    Received ₹{invoice.paymentReceived.toLocaleString()}
                                                 </p>
-
                                             </td>
-
-
                                             {/* STATUS */}
-
                                             <td className="px-5 py-6">
-
                                                 <span
-                                                    className={`
-                                                        inline-flex
-                                                        items-center
-                                                        gap-2
-
-                                                        px-3
-                                                        py-1.5
-
-                                                        rounded-full
-
-                                                        border
-
-                                                        text-xs
-                                                        font-bold
-
+                                                    className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-bold
                                                         ${status.className}
                                                     `}
                                                 >
-
                                                     <StatusIcon size={13}/>
-
                                                     {status.label}
-
                                                 </span>
-
                                             </td>
-
-
                                             {/* DATE */}
-
                                             <td className="px-5 py-6">
-
-                                                <div className="
-                                                    flex
-                                                    items-center
-                                                    gap-2
-                                                    text-gray-400
-                                                    text-sm
-                                                ">
-
+                                                <div className="flex items-center gap-2 text-gray-400 text-sm">
                                                     <CalendarDays size={15}/>
-
                                                     {invoice.invoiceDate}
-
                                                 </div>
-
                                             </td>
-
-
                                             {/* ACTION */}
-
                                             <td className="
                                                 px-7
                                                 py-6
