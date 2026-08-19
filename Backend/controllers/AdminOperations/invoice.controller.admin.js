@@ -2,6 +2,7 @@ import billAndInvoiceModel from "../../models/invoice.modals.js";
 import { appAssert } from "../../utils/errorAssertion.utils.js";
 import invoiceTemplate from "../../templates/invoice.template.js";
 import { AppError } from "../../utils/errorAssertion.utils.js";
+import membersModel from "../../models/members.modals.js";
 
 //------------------------------------------THIS IS THE CONTROLLER TO FETCH THE DATA FOR THE INVOICE GENERATION--------------
 export const generateInvoice = async (req,res)=>{
@@ -611,7 +612,7 @@ export const searchMembersForInvoice = async (req, res) => {
             "Please enter at least 2 characters"
         );
 
-        const members = await memberModel
+        const members = await membersModel
             .find({
                 gym: gymId,
 
@@ -630,7 +631,7 @@ export const searchMembersForInvoice = async (req, res) => {
                     }
                 ]
             })
-            .select("_id name email")
+            .select("_id fullName email")
             .limit(10)
             .lean();
 

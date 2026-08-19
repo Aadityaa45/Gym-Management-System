@@ -97,7 +97,7 @@ const billAndInvoiceSchema = new mongoose.Schema(
     // Membership Invoice
     membership: {
       type: mongoose.Types.ObjectId,
-      ref: "membershipPlans",
+      ref: "membershipPlan",
       default: null,
     },
 

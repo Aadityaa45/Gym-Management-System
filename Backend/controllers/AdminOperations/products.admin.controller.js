@@ -5,6 +5,7 @@ import GymDetails from "../../models/gym.modals.js";
 import EmailService from "../../services/email.service.js";
 import InvoiceService from "../../services/invoice.service.js";
 import { generateInvoice } from "./invoice.controller.admin.js";
+import mongoose from "mongoose";
 
 
 //--------------------------------------------------- THIS IS THE CONTROLLER TO ADD NEW PRODUCT---------------------------------------

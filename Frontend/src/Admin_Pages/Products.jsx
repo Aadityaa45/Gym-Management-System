@@ -39,12 +39,13 @@ const [selectedMember, setSelectedMember] = useState(null);
   const [invoiceData,setInvoiceData] = useState({
     memberId:"",
     invoiceTo:"",
-    paymentMethod:"",
+    paymentMethod:"cash",
     paymentReceived:"",
     discountAmount:"",
     taxAmount:"",
     notes:"",
-    dueDate:""
+    dueDate:"",
+    processedBy:""
   })
   const [selectedProduct,setSelectedProduct] = useState(null)
   // const [totalPages,setTotalPages] = useState(1)
@@ -146,17 +147,22 @@ const [selectedMember, setSelectedMember] = useState(null);
             toast.error("Cart Is Empty!")
             return
         }
-        if(invoiceData.paymentReceived==="" || Number(invoiceData.paymentReceived<0)){
-            toast.error("Please Enter a valid payment recieved amount!!")
-            return
-        }
+        if (
+            invoiceData.paymentReceived === "" ||
+            Number(invoiceData.paymentReceived) < 0
+        ) {
+            toast.error(
+            "Please enter a valid payment received amount!!"
+        );
+        return;
+    }
 
         setInvoiceLoading(true)
 
         //now we call the backend api
         const backendUrl = import.meta.env.VITE_BACKEND_URL;
         const response = await axios.post(
-            `${backendUrl}/api/admin/products/fetch-products?page=${currentPage}&limit=8&search=${search}`,
+            `${backendUrl}/api/admin/products/sell-product`,
             {
                 //here, we will send the payload to the backend
                 products:
@@ -171,9 +177,12 @@ const [selectedMember, setSelectedMember] = useState(null);
                 notes:invoiceData.notes.trim() || null,
                 dueDate:invoiceData.dueDate || null,
                 taxAmount:Number(invoiceData.taxAmount || 0),
+                processedBy:invoiceData.processedBy,
                 purchaser: {
-                    memberId: invoiceData.memberId.trim() || null,
-                    invoiceTo: invoiceData.purchaserName.trim()
+                    // memberId: invoiceData.memberId,
+                    // invoiceTo: invoiceData.purchaserName
+                    memberId: invoiceData.memberId || null,
+                    name: invoiceData.purchaserName.trim()
                 },
             },
             {
@@ -185,7 +194,7 @@ const [selectedMember, setSelectedMember] = useState(null);
             setInvoiceLoading(false)
             setCartOpen(false)
             window.open(
-                `${backendUrl}/api/admin/invoice/${response.data.invoiceId}`,
+                `${backendUrl}/api/admin/invoice/${response.data.invoice._id}`,
                 "_blank"
             );
             setInvoiceData({
@@ -197,6 +206,7 @@ const [selectedMember, setSelectedMember] = useState(null);
                 taxAmount: "",
                 notes: "",
                 dueDate: "",
+                processedBy:""
             });
         }else{
             toast.error(
@@ -217,8 +227,54 @@ const [selectedMember, setSelectedMember] = useState(null);
 
     }
   }
+
+  //this is the search function to search for the Members
+  const searchMembers = async (value) => {
+
+    try {
+
+        setMemberSearching(true);
+
+        const backendUrl =
+            import.meta.env.VITE_BACKEND_URL;
+
+        const response = await axios.get(
+            `${backendUrl}/api/admin/invoice/search-members`,
+            {
+                params: {
+                    search: value
+                },
+
+                withCredentials: true
+            }
+        );
+
+        if (response.data.success) {
+
+            setMemberResults(
+                response.data.members
+            );
+
+        }
+
+    } catch (error) {
+
+        console.error(
+            "Member search error:",
+            error
+        );
+
+        setMemberResults([]);
+
+    } finally {
+
+        setMemberSearching(false);
+
+    }
+
+};
   
-  //debouncing 
+  //debouncing for the invoice member search
   useEffect(() => {
       const timer = setTimeout(() => {
         fetchProducts();
@@ -228,6 +284,30 @@ const [selectedMember, setSelectedMember] = useState(null);
         clearTimeout(timer);
       };
     }, [search,currentPage]);
+
+    useEffect(() => {
+
+    if (memberSearch.trim().length < 2) {
+
+        setMemberResults([]);
+
+        return;
+
+    }
+
+    const timer = setTimeout(() => {
+
+        searchMembers(memberSearch);
+
+    }, 400);
+
+    return () => {
+
+        clearTimeout(timer);
+
+    };
+
+}, [memberSearch]);
     return(
         <div>
             {/* =======================================================
@@ -1642,732 +1722,6 @@ background:#555;
 )
 
 }
-{
-invoicePopupOpen && (
-
-<>
-
-{/* ================= BACKDROP ================= */}
-
-<div
-    onClick={() => {
-        if (!invoiceLoading) {
-            setInvoicePopupOpen(false);
-        }
-    }}
-    className="
-    fixed
-    inset-0
-
-    bg-black/80
-    backdrop-blur-md
-
-    z-[80]
-    "
-/>
-
-
-{/* ================= INVOICE MODAL ================= */}
-
-<div
-className="
-fixed
-
-left-1/2
-top-1/2
-
--translate-x-1/2
--translate-y-1/2
-
-w-[850px]
-max-w-[95vw]
-
-max-h-[90vh]
-
-overflow-y-auto
-
-rounded-[32px]
-
-border
-border-[#2d2d2d]
-
-bg-gradient-to-b
-from-[#181818]
-via-[#111111]
-to-[#0b0b0b]
-
-shadow-[0_40px_120px_rgba(0,0,0,.7)]
-
-z-[90]
-
-"
->
-
-{/* ================= HEADER ================= */}
-
-<div
-className="
-px-8
-py-7
-
-border-b
-border-[#252525]
-
-flex
-justify-between
-items-start
-"
->
-
-<div>
-
-<p
-className="
-uppercase
-tracking-[4px]
-
-text-red-400
-text-xs
-font-bold
-"
->
-
-Selling Module
-
-</p>
-
-<h2
-className="
-mt-2
-
-text-3xl
-
-font-black
-
-text-white
-"
->
-
-Generate Invoice
-
-</h2>
-
-<p className="text-gray-500 mt-2">
-
-Enter purchaser and payment details.
-
-</p>
-
-</div>
-
-
-<button
-
-onClick={() => setInvoicePopupOpen(false)}
-
-disabled={invoiceLoading}
-
-className="
-w-12
-h-12
-
-rounded-2xl
-
-bg-[#1a1a1a]
-
-border
-border-[#303030]
-
-hover:bg-red-500
-
-transition-all
-
-flex
-items-center
-justify-center
-"
-
->
-
-<X size={20}/>
-
-</button>
-
-</div>
-
-
-{/* ================= BODY ================= */}
-
-<div className="p-8">
-
-{/* Purchaser */}
-
-<div>
-
-<p
-className="
-text-white
-font-bold
-text-lg
-"
->
-
-Purchaser Information
-
-</p>
-
-<p className="text-gray-500 text-sm mt-1">
-
-Member details are optional. Name is required for every sale.
-
-</p>
-
-</div>
-
-
-<div className="grid grid-cols-2 gap-5 mt-6">
-
-{/* Member ID */}
-
-{/* <div>
-
-<label className="text-gray-400 text-sm">
-
-Member ID
-
-<span className="text-gray-600 ml-2">
-(Optional)
-</span>
-
-</label>
-
-<input
-
-type="text"
-
-name="memberId"
-
-value={invoiceData.memberId}
-
-onChange={invoiceInputChangeHandler}
-
-placeholder="Enter registered member ID"
-
-className="premiumInput mt-2"
-
-/>
-
-</div> */}
-<div className="relative">
-
-    <label className="text-gray-400 text-sm">
-        Member
-        <span className="text-gray-600 ml-2">
-            (Optional)
-        </span>
-    </label>
-
-    <input
-        type="text"
-        value={memberSearch}
-        onChange={(e) => setMemberSearch(e.target.value)}
-        placeholder="Search by name or email..."
-        className="premiumInput mt-2"
-    />
-
-    {memberSearch.length >= 2 && (
-        <div className="absolute z-50 w-full mt-2 ...">
-
-            {/* search results */}
-
-        </div>
-    )}
-
-</div>
-
-
-{/* Purchaser Name */}
-
-<div>
-
-<label className="text-gray-400 text-sm">
-
-Purchaser Name
-
-<span className="text-red-400 ml-1">
-*
-</span>
-
-</label>
-
-<input
-
-type="text"
-
-name="purchaserName"
-
-value={invoiceData.purchaserName}
-
-onChange={invoiceInputChangeHandler}
-
-placeholder="Enter purchaser name"
-
-className="premiumInput mt-2"
-
-/>
-
-</div>
-
-</div>
-
-
-{/* ================= PAYMENT ================= */}
-
-<div className="mt-9">
-
-<p
-className="
-text-white
-font-bold
-text-lg
-"
->
-
-Payment Information
-
-</p>
-
-</div>
-
-
-<div className="grid grid-cols-2 gap-5 mt-6">
-
-{/* Payment Method */}
-
-<div>
-
-<label className="text-gray-400 text-sm">
-
-Payment Method
-
-</label>
-
-<select
-
-name="paymentMethod"
-
-value={invoiceData.paymentMethod}
-
-onChange={invoiceInputChangeHandler}
-
-className="premiumInput mt-2"
-
->
-
-<option value="cash">
-Cash
-</option>
-
-<option value="upi">
-UPI
-</option>
-
-<option value="card">
-Card
-</option>
-
-<option value="bank_transfer">
-Bank Transfer
-</option>
-
-<option value="other">
-Other
-</option>
-
-</select>
-
-</div>
-
-
-{/* Payment Received */}
-
-<div>
-
-<label className="text-gray-400 text-sm">
-
-Payment Received
-
-<span className="text-red-400 ml-1">
-*
-</span>
-
-</label>
-
-<input
-
-type="number"
-
-min="0"
-
-name="paymentReceived"
-
-value={invoiceData.paymentReceived}
-
-onChange={invoiceInputChangeHandler}
-
-placeholder="0"
-
-className="premiumInput mt-2"
-
-/>
-
-</div>
-
-</div>
-
-
-{/* Discount + Tax */}
-
-<div className="grid grid-cols-2 gap-5 mt-5">
-
-<div>
-
-<label className="text-gray-400 text-sm">
-
-Discount Amount
-
-</label>
-
-<input
-
-type="number"
-
-min="0"
-
-name="discountAmount"
-
-value={invoiceData.discountAmount}
-
-onChange={invoiceInputChangeHandler}
-
-placeholder="0"
-
-className="premiumInput mt-2"
-
-/>
-
-</div>
-
-
-<div>
-
-<label className="text-gray-400 text-sm">
-
-Tax Amount
-
-</label>
-
-<input
-
-type="number"
-
-min="0"
-
-name="taxAmount"
-
-value={invoiceData.taxAmount}
-
-onChange={invoiceInputChangeHandler}
-
-placeholder="0"
-
-className="premiumInput mt-2"
-
-/>
-
-</div>
-
-</div>
-
-
-{/* ================= NOTES ================= */}
-
-<div className="mt-5">
-
-<label className="text-gray-400 text-sm">
-
-Notes
-
-</label>
-
-<textarea
-
-name="notes"
-
-value={invoiceData.notes}
-
-onChange={invoiceInputChangeHandler}
-
-rows={4}
-
-placeholder="Optional notes for this invoice..."
-
-className="
-premiumInput
-mt-2
-resize-none
-"
-
-/>
-
-</div>
-
-
-{/* ================= DUE DATE ================= */}
-
-<div className="mt-5">
-
-<label className="text-gray-400 text-sm">
-
-Due Date
-
-<span className="text-gray-600 ml-2">
-(Optional)
-</span>
-
-</label>
-
-<input
-
-type="date"
-
-name="dueDate"
-
-value={invoiceData.dueDate}
-
-onChange={invoiceInputChangeHandler}
-
-className="premiumInput mt-2"
-
-/>
-
-</div>
-
-
-{/* ================= SUMMARY ================= */}
-
-<div
-className="
-mt-8
-
-rounded-3xl
-
-border
-border-[#292929]
-
-bg-[#151515]
-
-p-6
-"
->
-
-<div className="flex justify-between">
-
-<span className="text-gray-500">
-Products
-</span>
-
-<span className="text-white font-semibold">
-{cart.length}
-</span>
-
-</div>
-
-
-<div className="flex justify-between mt-4">
-
-<span className="text-gray-500">
-Total Items
-</span>
-
-<span className="text-white font-semibold">
-
-{
-cart.reduce(
-(acc,item) => acc + item.quantity,
-0
-)
-}
-
-</span>
-
-</div>
-
-
-<div className="border-t border-[#292929] my-5"/>
-
-
-<div className="flex justify-between items-end">
-
-<div>
-
-<p
-className="
-uppercase
-tracking-[3px]
-
-text-gray-500
-text-xs
-"
->
-
-Cart Total
-
-</p>
-
-<h2
-className="
-text-3xl
-font-black
-
-text-red-500
-
-mt-2
-"
->
-
-₹{
-
-cart.reduce(
-
-(acc,item) =>
-acc + item.price * item.quantity,
-
-0
-
-)
-
-}
-
-</h2>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-
-{/* ================= FOOTER ================= */}
-
-<div
-className="
-border-t
-border-[#252525]
-
-px-8
-py-6
-
-flex
-justify-end
-gap-4
-"
->
-
-<button
-
-onClick={() => setInvoicePopupOpen(false)}
-
-disabled={invoiceLoading}
-
-className="
-px-8
-h-12
-
-rounded-2xl
-
-bg-[#181818]
-
-border
-border-[#303030]
-
-hover:border-red-500/40
-
-transition-all
-
-text-white
-"
-
->
-
-Cancel
-
-</button>
-
-
-<button
-
-onClick={generateInvoice}
-
-disabled={
-invoiceLoading ||
-cart.length === 0 
-// || !invoiceData.purchaserName.trim()
-}
-
-className="
-px-10
-h-12
-
-rounded-2xl
-
-bg-gradient-to-r
-
-from-red-700
-via-red-600
-to-red-500
-
-text-white
-
-font-bold
-
-hover:shadow-[0_15px_30px_rgba(255,0,0,.35)]
-
-transition-all
-
-disabled:opacity-50
-
-disabled:cursor-not-allowed
-"
-
->
-
-{
-
-invoiceLoading
-
-?
-
-"Generating..."
-
-:
-
-"Generate Invoice"
-
-}
-
-</button>
-
-</div>
-
-</div>
-
-</>
-
-)
-}
 
       {
     invoicePopupOpen && (
@@ -2679,6 +2033,8 @@ invoiceLoading
 
                             <div
                                 className="
+                                relative
+                                z-20
                                 rounded-3xl
 
                                 border
@@ -2686,7 +2042,7 @@ invoiceLoading
 
                                 bg-[#121212]
 
-                                overflow-hidden
+                                overflow-visible
                                 "
                             >
 
@@ -2781,7 +2137,7 @@ invoiceLoading
 
                                     {/* MEMBER ID */}
 
-                                    <div>
+                                    {/* <div>
 
                                         <label
                                             className="
@@ -2857,7 +2213,193 @@ invoiceLoading
                                             "
                                         />
 
-                                    </div>
+                                    </div> */}
+                                    <div className="relative">
+
+    <label className="text-gray-400 text-sm">
+        Member
+
+        <span className="text-gray-600 ml-2">
+            (Optional)
+        </span>
+    </label>
+
+    <input
+        type="text"
+        value={memberSearch}
+        onChange={(e) => {
+            setMemberSearch(e.target.value);
+
+            // if user changes search after selecting
+            if (selectedMember) {
+                setSelectedMember(null);
+
+                setInvoiceData((prev) => ({
+                    ...prev,
+                    memberId: "",
+                    purchaserName: ""
+                }));
+            }
+        }}
+        placeholder="Search member by name or email..."
+        className="premiumInput mt-2"
+    />
+
+    {/* ================= SEARCH RESULTS ================= */}
+
+    {memberSearch.length >= 2 && (
+
+        <div
+            className="
+                absolute
+                left-0
+                right-0
+                top-full
+                mt-2
+
+                z-[100]
+
+                rounded-2xl
+
+                border
+                border-[#303030]
+
+                bg-[#151515]
+
+                shadow-[0_20px_60px_rgba(0,0,0,.6)]
+
+                overflow-hidden
+            "
+        >
+
+            {/* LOADING */}
+
+            {memberSearching && (
+
+                <div className="px-5 py-4 text-sm text-gray-500">
+                    Searching members...
+                </div>
+
+            )}
+
+
+            {/* NO RESULTS */}
+
+            {!memberSearching &&
+                memberResults.length === 0 && (
+
+                    <div className="px-5 py-4">
+
+                        <p className="text-gray-400 text-sm">
+                            No members found
+                        </p>
+
+                        <p className="text-gray-600 text-xs mt-1">
+                            Try another name or email.
+                        </p>
+
+                    </div>
+
+                )
+            }
+
+
+            {/* RESULTS */}
+
+            {!memberSearching &&
+                memberResults.length > 0 && (
+
+                    <div className="max-h-64 overflow-y-auto">
+
+                        {memberResults.map((member) => (
+
+                            <button
+                                key={member._id}
+                                type="button"
+
+                                onClick={() => {
+
+                                    setSelectedMember(member);
+
+                                    setMemberSearch(
+                                        member.fullName
+                                    );
+
+                                    setInvoiceData((prev) => ({
+                                        ...prev,
+
+                                        memberId: member._id,
+
+                                        purchaserName:
+                                            member.fullName
+                                    }));
+
+                                    setMemberResults([]);
+
+                                }}
+
+                                className="
+                                    w-full
+
+                                    px-5
+                                    py-4
+
+                                    text-left
+
+                                    border-b
+                                    border-[#252525]
+
+                                    hover:bg-[#1d1d1d]
+
+                                    transition
+
+                                    flex
+                                    items-center
+                                    justify-between
+                                "
+                            >
+
+                                <div>
+
+                                    <p className="
+                                        text-white
+                                        font-semibold
+                                    ">
+                                        {member.name}
+                                    </p>
+
+                                    <p className="
+                                        text-gray-500
+                                        text-sm
+                                        mt-1
+                                    ">
+                                        {member.email}
+                                    </p>
+
+                                </div>
+
+                                <span className="
+                                    text-gray-600
+                                    text-xs
+                                ">
+                                    Select
+                                </span>
+
+                            </button>
+
+                        ))}
+
+                    </div>
+
+                )
+            }
+
+        </div>
+
+    )}
+
+</div>
+
 
 
                                     {/* PURCHASER NAME */}
@@ -3104,19 +2646,19 @@ invoiceLoading
                                             >
 
                                                 <option value="cash">
-                                                    Cash
+                                                    cash
                                                 </option>
 
                                                 <option value="upi">
-                                                    UPI
+                                                    upi
                                                 </option>
 
                                                 <option value="card">
-                                                    Card
+                                                    card
                                                 </option>
 
                                                 <option value="bank_transfer">
-                                                    Bank Transfer
+                                                    bank transfer
                                                 </option>
 
                                                 <option value="other">
@@ -3562,6 +3104,76 @@ invoiceLoading
 
                                             focus:border-red-500/60
 
+                                            focus:ring-4
+                                            focus:ring-red-500/10
+                                            "
+                                        />
+
+                                    </div>
+                                    <div>
+
+                                        <label
+                                            className="
+                                            block
+
+                                            text-gray-400
+                                            text-xs
+
+                                            uppercase
+                                            tracking-[1.5px]
+
+                                            font-semibold
+                                            "
+                                        >
+
+                                            Processed By
+
+                                            <span className="text-red-400 ml-1">
+
+                                                *
+
+                                            </span>
+
+                                        </label>
+
+
+                                        <input
+
+                                            type="text"
+
+                                            name="processedBy"
+
+                                            value={invoiceData.processedBy}
+
+                                            onChange={invoiceInputChangeHandler}
+
+                                            placeholder="Enter purchaser name"
+
+                                            className="
+                                            w-full
+
+                                            h-12
+
+                                            mt-2
+
+                                            px-4
+
+                                            rounded-xl
+
+                                            bg-[#0c0c0c]
+
+                                            border
+                                            border-[#2c2c2c]
+
+                                            text-white
+
+                                            placeholder:text-gray-600
+
+                                            outline-none
+
+                                            transition-all
+
+                                            focus:border-red-500/60
                                             focus:ring-4
                                             focus:ring-red-500/10
                                             "
