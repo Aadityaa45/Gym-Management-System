@@ -54,7 +54,7 @@ const invoiceCategories = [
   "membership",
   "product",
   "registration",
-  "other",
+  "membership_upgrade",
 ];
 
 const invoiceStatuses = [

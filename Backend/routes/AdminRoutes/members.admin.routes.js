@@ -5,10 +5,12 @@ import {registerMember} from "../../controllers/AdminOperations/Members.Admin.co
 import {verifyRegistrationOtp} from "../../controllers/AdminOperations/Members.Admin.controller.js"
 import { fetchMembers } from "../../controllers/AdminOperations/Members.Admin.controller.js";
 import { getMemberDetails } from "../../controllers/AdminOperations/Members.Admin.controller.js";
+import { upgradeMemberMembership } from "../../controllers/AdminOperations/Members.Admin.controller.js";
 
 const memberRouter = express.Router()
 
 memberRouter.post("/register-member",gymAuth,registerMember)
+memberRouter.post("/upgrade-membership",gymAuth,upgradeMemberMembership)
 memberRouter.get('/member-details/:memberId',gymAuth,getMemberDetails)
 memberRouter.post("/verify-otp",gymAuth,verifyRegistrationOtp)
 memberRouter.get("/fetch-members",gymAuth,fetchMembers)

@@ -1380,3 +1380,763 @@ export const getMemberDetails = async (req, res) => {
     }
 
 };
+
+// ==========================================================
+// UPGRADE / PAYMENT CONTROLLER
+// ==========================================================
+
+export const upgradeMemberMembership = async (req, res) => {
+
+    const session = await mongoose.startSession();
+
+    try {
+
+        // ==================================================
+        // 1. GYM AUTHENTICATION
+        // ==================================================
+
+        const gymId = req.gym?.gymId;
+
+        appAssert(
+            gymId,
+            "Gym information is required"
+        );
+
+
+        // ==================================================
+        // 2. REQUEST DATA
+        // ==================================================
+
+        const {
+            memberId,
+            newPlanId = null,
+            startDate = null,
+            oldDuePayment = 0,
+            discount = 0,
+            newMembershipPayment = 0
+        } = req.body;
+
+
+        // ==================================================
+        // 3. BASIC VALIDATION
+        // ==================================================
+
+        appAssert(
+            memberId,
+            "Member ID is required"
+        );
+
+        appAssert(
+            mongoose.Types.ObjectId.isValid(memberId),
+            "Invalid member ID"
+        );
+
+
+        if (newPlanId !== null) {
+
+            appAssert(
+                mongoose.Types.ObjectId.isValid(newPlanId),
+                "Invalid membership plan ID"
+            );
+
+        }
+
+
+        // ==================================================
+        // 4. NUMERIC VALIDATION
+        // ==================================================
+
+        const oldDuePaymentAmount =
+            Number(oldDuePayment);
+
+        const discountAmount =
+            Number(discount);
+
+        const newMembershipPaymentAmount =
+            Number(newMembershipPayment);
+
+
+        appAssert(
+            Number.isFinite(oldDuePaymentAmount) &&
+            oldDuePaymentAmount >= 0,
+            "Invalid previous due payment"
+        );
+
+        appAssert(
+            Number.isFinite(discountAmount) &&
+            discountAmount >= 0,
+            "Invalid discount"
+        );
+
+        appAssert(
+            Number.isFinite(newMembershipPaymentAmount) &&
+            newMembershipPaymentAmount >= 0,
+            "Invalid membership payment"
+        );
+
+
+        // ==================================================
+        // 5. START TRANSACTION
+        // ==================================================
+
+        session.startTransaction();
+
+
+        // ==================================================
+        // 6. FETCH MEMBER
+        // ==================================================
+
+        const member = await membersModel
+            .findOne({
+                _id: memberId,
+                gym: gymId
+            })
+            .session(session);
+
+
+        appAssert(
+            member,
+            "Member not found"
+        );
+
+
+        // ==================================================
+        // 7. FETCH NEW PLAN
+        // ==================================================
+
+        let newPlan = null;
+
+        if (newPlanId) {
+
+            newPlan = await MembershipPlanModel
+                .findOne({
+                    _id: newPlanId,
+                    gym: gymId
+                })
+                .session(session)
+                .lean();
+
+
+            appAssert(
+                newPlan,
+                "Membership plan not found"
+            );
+
+
+            appAssert(
+                newPlan.active === true,
+                "Selected membership plan is not active"
+            );
+
+        }
+
+
+        // ==================================================
+        // 8. CURRENT PAYMENT STATE
+        // ==================================================
+
+        const currentTotal =
+            Number(member.fee?.total || 0);
+
+        const currentPaid =
+            Number(member.fee?.paid || 0);
+
+        const currentRemaining =
+            Number(member.fee?.remaining || 0);
+
+
+        // ==================================================
+        // 9. VALIDATE OLD DUE PAYMENT
+        // ==================================================
+
+        appAssert(
+            oldDuePaymentAmount <= currentRemaining,
+            `Previous outstanding amount is only ₹${currentRemaining}`
+        );
+
+
+        // ==================================================
+        // 10. IF NO PLAN SELECTED
+        //     THEN THIS IS ONLY DUE SETTLEMENT
+        // ==================================================
+
+        if (!newPlan) {
+
+            appAssert(
+                oldDuePaymentAmount > 0,
+                "No membership upgrade or payment settlement requested"
+            );
+
+
+            const updatedPaid =
+                currentPaid +
+                oldDuePaymentAmount;
+
+
+            const updatedRemaining =
+                Math.max(
+                    currentTotal - updatedPaid,
+                    0
+                );
+
+
+            // ----------------------------------------------
+            // UPDATE MEMBER PAYMENT
+            // ----------------------------------------------
+
+            member.fee.paid =
+                updatedPaid;
+
+            member.fee.remaining =
+                updatedRemaining;
+
+
+            await member.save({
+                session
+            });
+
+
+            // ----------------------------------------------
+            // GENERATE PAYMENT INVOICE
+            // ----------------------------------------------
+
+            const invoice =
+                await InvoiceService.generateInvoice({
+
+                    gymId,
+
+                    category: "membership_payment",
+
+                    memberId: member._id,
+
+                    membershipId:
+                        member.membership?.plan || null,
+
+                    items: [],
+
+                    amount:
+                        oldDuePaymentAmount,
+
+                    discountAmount: 0,
+
+                    paymentMethod: "upi",
+
+                    paymentReceived:
+                        oldDuePaymentAmount,
+
+                    processedBy:
+                        req.user?.fullName ||
+                        req.user?.name ||
+                        "Admin",
+
+                    session
+
+                });
+
+
+            // ----------------------------------------------
+            // COMMIT
+            // ----------------------------------------------
+
+            await session.commitTransaction();
+
+            session.endSession();
+
+
+            return res.status(200).json({
+
+                success: true,
+
+                operation: "payment_settlement",
+
+                message:
+                    "Previous outstanding payment settled successfully",
+
+                member: {
+
+                    memberId: member._id,
+
+                    payment: {
+
+                        total: currentTotal,
+
+                        paid: updatedPaid,
+
+                        remaining: updatedRemaining
+
+                    }
+
+                },
+
+                invoiceId: invoice?._id || null
+
+            });
+
+        }
+
+
+        // ==================================================
+        // 11. MEMBERSHIP UPGRADE VALIDATION
+        // ==================================================
+
+        appAssert(
+            newPlan.durationInDays > 0,
+            "Invalid membership duration"
+        );
+
+        appAssert(
+            newPlan.price >= 0,
+            "Invalid membership plan price"
+        );
+
+
+        // ==================================================
+        // 12. PREVENT SAME PLAN UPGRADE
+        // ==================================================
+
+        const currentPlanId =
+            member.membership?.plan?._id ||
+            member.membership?.plan;
+
+
+        if (
+            currentPlanId &&
+            currentPlanId.toString() ===
+            newPlan._id.toString()
+        ) {
+
+            throw new AppError(
+                "Member is already subscribed to this membership plan",
+                400
+            );
+
+        }
+
+
+        // ==================================================
+        // 13. VALIDATE START DATE
+        // ==================================================
+
+        let membershipStartDate;
+
+        if (startDate) {
+
+            membershipStartDate =
+                new Date(startDate);
+
+        }
+        else {
+
+            membershipStartDate =
+                new Date();
+
+        }
+
+
+        appAssert(
+            !isNaN(
+                membershipStartDate.getTime()
+            ),
+            "Invalid membership start date"
+        );
+
+
+        // ==================================================
+        // 14. CALCULATE NEW MEMBERSHIP
+        // ==================================================
+
+        const planPrice =
+            Number(newPlan.price);
+
+
+        appAssert(
+            discountAmount <= planPrice,
+            "Discount cannot exceed membership price"
+        );
+
+
+        const membershipPayable =
+            Math.max(
+                planPrice -
+                discountAmount,
+                0
+            );
+
+
+        appAssert(
+            newMembershipPaymentAmount <=
+            membershipPayable,
+            `Membership payment cannot exceed ₹${membershipPayable}`
+        );
+
+
+        const newMembershipRemaining =
+            Math.max(
+                membershipPayable -
+                newMembershipPaymentAmount,
+                0
+            );
+
+
+        // ==================================================
+        // 15. CALCULATE OLD DUE AFTER PAYMENT
+        // ==================================================
+
+        const oldDueRemaining =
+            Math.max(
+                currentRemaining -
+                oldDuePaymentAmount,
+                0
+            );
+
+
+        // ==================================================
+        // 16. CALCULATE NEW EXPIRY
+        // ==================================================
+
+        const membershipEndDate =
+            new Date(
+                membershipStartDate.getTime() +
+                (
+                    newPlan.durationInDays *
+                    24 *
+                    60 *
+                    60 *
+                    1000
+                )
+            );
+
+
+        // ==================================================
+        // 17. UPDATE MEMBER MEMBERSHIP
+        // ==================================================
+
+        member.membership.plan =
+            newPlan._id;
+
+        member.membership.planStartDate =
+            membershipStartDate;
+
+        member.membership.planEndDate =
+            membershipEndDate;
+
+
+        // ==================================================
+        // 18. UPDATE PAYMENT STATE
+        // ==================================================
+
+        /*
+            Important:
+
+            Old due + new membership are two different
+            financial obligations.
+
+            We don't simply overwrite the old amount.
+
+            The member's new outstanding balance becomes:
+
+                previous outstanding after settlement
+                +
+                new membership outstanding
+        */
+
+        const finalRemaining =
+            oldDueRemaining +
+            newMembershipRemaining;
+
+
+        const finalPaid =
+            newMembershipPaymentAmount +
+            oldDuePaymentAmount;
+
+
+        const finalTotal =
+            finalRemaining +
+            finalPaid;
+
+
+        member.fee = {
+
+            total: finalTotal,
+
+            paid: finalPaid,
+
+            remaining: finalRemaining,
+
+            discount: discountAmount
+
+        };
+
+
+        // ==================================================
+        // 19. SAVE MEMBER
+        // ==================================================
+
+        await member.save({
+            session
+        });
+
+
+        // ==================================================
+        // 20. GENERATE MEMBERSHIP INVOICE
+        // ==================================================
+
+        const invoice =
+            await InvoiceService.generateInvoice({
+
+                gymId,
+
+                category: "membership_upgrade",
+
+                memberId: member._id,
+
+                membershipId: newPlan._id,
+
+                items: [],
+
+                amount: planPrice,
+
+                discountAmount,
+
+                paymentMethod: "upi",
+
+                paymentReceived:
+                    newMembershipPaymentAmount,
+
+                processedBy:
+                    req.user?.fullName ||
+                    req.user?.name ||
+                    "Admin",
+
+                session
+
+            });
+
+
+        // ==================================================
+        // 21. GENERATE OLD DUE PAYMENT INVOICE
+        // ==================================================
+
+        let oldDueInvoice = null;
+
+
+        if (oldDuePaymentAmount > 0) {
+
+            oldDueInvoice =
+                await InvoiceService.generateInvoice({
+
+                    gymId,
+
+                    category: "membership_payment",
+
+                    memberId: member._id,
+
+                    membershipId:
+                        newPlan._id,
+
+                    items: [],
+
+                    amount:
+                        oldDuePaymentAmount,
+
+                    discountAmount: 0,
+
+                    paymentMethod: "upi",
+
+                    paymentReceived:
+                        oldDuePaymentAmount,
+
+                    processedBy:
+                        req.user?.fullName ||
+                        req.user?.name ||
+                        "Admin",
+
+                    session
+
+                });
+
+        }
+
+
+        // ==================================================
+        // 22. COMMIT TRANSACTION
+        // ==================================================
+
+        await session.commitTransaction();
+
+        session.endSession();
+
+
+        // ==================================================
+        // 23. RESPONSE
+        // ==================================================
+
+        return res.status(200).json({
+
+            success: true,
+
+            operation: "membership_upgrade",
+
+            message:
+                "Membership upgraded successfully",
+
+            member: {
+
+                memberId:
+                    member._id,
+
+                membership: {
+
+                    previousPlanId:
+                        currentPlanId || null,
+
+                    newPlan: {
+
+                        _id:
+                            newPlan._id,
+
+                        name:
+                            newPlan.name,
+
+                        durationInDays:
+                            newPlan.durationInDays,
+
+                        price:
+                            newPlan.price
+
+                    },
+
+                    planStartDate:
+                        membershipStartDate,
+
+                    planEndDate:
+                        membershipEndDate
+
+                },
+
+                payment: {
+
+                    previousDue: {
+
+                        before:
+                            currentRemaining,
+
+                        paidNow:
+                            oldDuePaymentAmount,
+
+                        remaining:
+                            oldDueRemaining
+
+                    },
+
+                    newMembership: {
+
+                        price:
+                            planPrice,
+
+                        discount:
+                            discountAmount,
+
+                        payable:
+                            membershipPayable,
+
+                        paidNow:
+                            newMembershipPaymentAmount,
+
+                        remaining:
+                            newMembershipRemaining
+
+                    },
+
+                    final: {
+
+                        total:
+                            finalTotal,
+
+                        paid:
+                            finalPaid,
+
+                        remaining:
+                            finalRemaining
+
+                    }
+
+                }
+
+            },
+
+            invoices: {
+
+                membership:
+                    invoice?._id || null,
+
+                previousDue:
+                    oldDueInvoice?._id || null
+
+            }
+
+        });
+
+    }
+    catch (error) {
+
+        // ==================================================
+        // ROLLBACK
+        // ==================================================
+
+        if (
+            session.inTransaction()
+        ) {
+
+            await session.abortTransaction();
+
+        }
+
+
+        // ==================================================
+        // CLOSE SESSION
+        // ==================================================
+
+        await session.endSession();
+
+
+        // ==================================================
+        // ERROR RESPONSE
+        // ==================================================
+
+        console.error(
+            "MEMBERSHIP UPGRADE ERROR:",
+            error
+        );
+
+
+        if (
+            error instanceof AppError
+        ) {
+
+            return res.status(
+                error.statusCode || 400
+            ).json({
+
+                success: false,
+
+                message:
+                    error.message
+
+            });
+
+        }
+
+
+        return res.status(500).json({
+
+            success: false,
+
+            message:
+                "Unable to process membership upgrade"
+
+        });
+
+    }
+
+};
