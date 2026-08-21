@@ -47,8 +47,8 @@ const Invoices = () => {
     const [summary, setSummary] = useState({
         total: 0,
         paid: 0,
-        pending: 0,
-        outstandingInvoices: 0
+        outstandingInvoices: 0,
+        outstandingAmount:0
     });
     // =========================================================
     // FILTER HANDLER
@@ -358,7 +358,7 @@ const Invoices = () => {
                                     Pending Payments
                                 </p>
                                 <h2 className="text-3xl font-black text-amber-400 mt-3">
-                                    {summary.pending}
+                                    {summary.outstandingInvoices}
                                 </h2>
                             </div>
                             <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
@@ -380,7 +380,7 @@ const Invoices = () => {
                                     Outstanding Amount
                                 </p>
                                 <h2 className="text-3xl font-black text-red-400 mt-3">
-                                    ₹{summary.outstandingInvoices.toLocaleString()}
+                                    ₹{summary.outstandingAmount.toLocaleString()}
                                 </h2>
                             </div>
                             <div className="w-12 h-12 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
