@@ -13,6 +13,7 @@ import membershiPlansRoutes from './routes/AdminRoutes/membershiPlans.admin.rout
 import membershipRoutes from './routes/AdminRoutes/members.admin.routes.js'
 import productRoutes from './routes/AdminRoutes/product.admin.routes.js'
 import invoiceRoute from './routes/AdminRoutes/invoice.routes.js'
+import expanseRoute from './routes/AdminRoutes/expanses.adminRouts.js'
 
 console.log(membershipRoutes);
 //get the port running on from here
@@ -66,6 +67,7 @@ app.use('/api/gym/',membershiPlansRoutes)
 app.use('/api/admin/members',membershipRoutes)
 app.use('/api/admin/products',productRoutes)
 app.use('/api/admin/invoice',invoiceRoute)
+app.use('/api/admin/expanses',expanseRoute)
 
 
 StartServer()

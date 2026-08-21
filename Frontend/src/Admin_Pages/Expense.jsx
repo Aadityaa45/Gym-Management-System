@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
-
+import toast from "react-hot-toast";
+import axios from "axios";
 import {
     Search,
     Plus,
@@ -55,6 +56,47 @@ const ExpenseManagement = () => {
         maxAmount: "",
         recurring: "",
     });
+
+    const [newExpanseData, setNewExpanseData] = useState({
+        title: "",
+        category: "",
+        amount: "",
+        expenseDate: "",
+        paidTo: "",
+        paymentMethod: "",
+        isRecurring: false,
+        notes: "",
+    });
+
+    const handleNewExpanseChange = (e) =>{
+        const {name,value,type,checked} = e.target
+        setNewExpanseData((prev)=>({
+            ...prev,
+            [name]:type==="checkbox"?checked:value
+        }))
+    }
+
+    //THIS IS THE FUNCTION TO CRREATE A NEW EXPANSE AND SAVE IT TO OUR DB THROUGH OUR BACKEND 
+    const createNewExpanse = async () =>{
+        try {
+            const backendUrl = import.meta.env.VITE_BACKEND_URL;
+            const response = await axios.post(
+                `${backendUrl}/api/admin/expanses/create-expanse`,
+                newExpanseData,
+                {
+                    withCredentials:true
+                }
+            )
+
+            if(response.data.success){
+                toast.success("New Expanse Added Successfully")
+                setExpenseModalOpen(false)
+            }
+        } catch (error) {
+            toast.error("Something went wrong!!")
+            console.log(error)
+        }
+    }
 
 
     // --------------------------------------------------
@@ -1556,551 +1598,1086 @@ const ExpenseManagement = () => {
 
             {expenseModalOpen && (
 
-                <>
+    <>
 
-                    <div
-                        onClick={() =>
-                            setExpenseModalOpen(false)
-                        }
-                        className="
-                            fixed
-                            inset-0
-                            bg-black/75
-                            backdrop-blur-md
-                            z-[80]
-                        "
-                    />
+        {/* =========================================================
+                            BACKDROP
+        ========================================================== */}
 
-
-                    <div className="
-                        fixed
-                        left-1/2
-                        top-1/2
-                        -translate-x-1/2
-                        -translate-y-1/2
-
-                        w-[680px]
-                        max-w-[95vw]
-                        max-h-[90vh]
-
-                        overflow-y-auto
-
-                        rounded-[28px]
-
-                        border
-                        border-[#2b2b2b]
-
-                        bg-gradient-to-b
-                        from-[#181818]
-                        via-[#111111]
-                        to-[#0b0b0b]
-
-                        shadow-[0_40px_120px_rgba(0,0,0,.75)]
-
-                        z-[90]
-                    ">
+        <div
+            onClick={() => setExpenseModalOpen(false)}
+            className="
+                fixed
+                inset-0
+                z-[80]
+                bg-black/80
+                backdrop-blur-xl
+                transition-opacity
+            "
+        />
 
 
-                        {/* HEADER */}
+        {/* =========================================================
+                            MODAL
+        ========================================================== */}
 
-                        <div className="
-                            px-7
-                            py-6
-                            border-b
-                            border-[#242424]
-                            flex
-                            items-start
-                            justify-between
-                        ">
+        <div
+            className="
+                fixed
+                left-1/2
+                top-1/2
+                z-[90]
 
-                            <div>
+                w-[720px]
+                max-w-[95vw]
+                max-h-[92vh]
 
-                                <p className="
+                -translate-x-1/2
+                -translate-y-1/2
+
+                overflow-hidden
+
+                rounded-[30px]
+
+                border
+                border-white/[0.08]
+
+                bg-[#0b0b0b]
+
+                shadow-[0_40px_120px_rgba(0,0,0,.8)]
+
+                flex
+                flex-col
+            "
+        >
+
+            {/* =====================================================
+                                TOP GLOW
+            ====================================================== */}
+
+            <div
+                className="
+                    pointer-events-none
+                    absolute
+                    -right-24
+                    -top-24
+                    h-72
+                    w-72
+                    rounded-full
+                    bg-red-600/10
+                    blur-[110px]
+                "
+            />
+
+            <div
+                className="
+                    pointer-events-none
+                    absolute
+                    -left-24
+                    bottom-20
+                    h-64
+                    w-64
+                    rounded-full
+                    bg-red-600/[0.06]
+                    blur-[100px]
+                "
+            />
+
+
+            {/* =====================================================
+                                HEADER
+            ====================================================== */}
+
+            <div
+                className="
+                    relative
+                    shrink-0
+
+                    border-b
+                    border-white/[0.07]
+
+                    bg-white/[0.015]
+
+                    px-7
+                    py-6
+                "
+            >
+
+                <div className="flex items-start justify-between">
+
+                    <div className="flex items-center gap-4">
+
+                        {/* Icon */}
+
+                        <div
+                            className="
+                                flex
+                                h-12
+                                w-12
+                                shrink-0
+                                items-center
+                                justify-center
+
+                                rounded-2xl
+
+                                border
+                                border-red-500/20
+
+                                bg-red-500/10
+
+                                shadow-[0_0_30px_rgba(239,68,68,.08)]
+                            "
+                        >
+
+                            <Receipt
+                                size={21}
+                                className="text-red-400"
+                            />
+
+                        </div>
+
+
+                        {/* Heading */}
+
+                        <div>
+
+                            <p
+                                className="
+                                    text-[10px]
+                                    font-bold
                                     uppercase
                                     tracking-[4px]
                                     text-red-400
-                                    text-[10px]
-                                    font-bold
-                                ">
+                                "
+                            >
+                                Expense Management
+                            </p>
 
-                                    Expense Management
-
-                                </p>
-
-
-                                <h2 className="
+                            <h2
+                                className="
+                                    mt-1
                                     text-2xl
                                     font-black
-                                    mt-2
-                                ">
-
-                                    Record New Expense
-
-                                </h2>
-
-
-                                <p className="
-                                    text-gray-600
-                                    text-sm
-                                    mt-2
-                                ">
-
-                                    Document a gym expense for financial tracking.
-
-                                </p>
-
-                            </div>
-
-
-                            <button
-                                onClick={() =>
-                                    setExpenseModalOpen(false)
-                                }
-                                className="
-                                    w-10
-                                    h-10
-                                    rounded-xl
-                                    bg-[#1a1a1a]
-                                    border
-                                    border-[#2c2c2c]
-                                    text-gray-500
-                                    hover:text-white
-                                    flex
-                                    items-center
-                                    justify-center
-                                "
-                            >
-
-                                <X size={18}/>
-
-                            </button>
-
-                        </div>
-
-
-
-                        {/* FORM */}
-
-                        <div className="p-7 space-y-6">
-
-
-                            {/* TITLE + CATEGORY */}
-
-                            <div className="
-                                grid
-                                grid-cols-2
-                                gap-5
-                            ">
-
-                                <div>
-
-                                    <label className="
-                                        text-xs
-                                        text-gray-500
-                                    ">
-
-                                        Expense Title
-
-                                    </label>
-
-                                    <input
-                                        placeholder="e.g. Electricity Bill"
-                                        className="
-                                            premiumInput
-                                            mt-2
-                                            w-full
-                                        "
-                                    />
-
-                                </div>
-
-
-                                <div>
-
-                                    <label className="
-                                        text-xs
-                                        text-gray-500
-                                    ">
-
-                                        Category
-
-                                    </label>
-
-                                    <select
-                                        className="
-                                            premiumInput
-                                            mt-2
-                                            w-full
-                                        "
-                                    >
-
-                                        <option>Select category</option>
-                                        <option>Utilities</option>
-                                        <option>Maintenance</option>
-                                        <option>Employee</option>
-                                        <option>Rent</option>
-                                        <option>Equipment</option>
-                                        <option>Supplies</option>
-                                        <option>Marketing</option>
-                                        <option>Other</option>
-
-                                    </select>
-
-                                </div>
-
-                            </div>
-
-
-
-                            {/* AMOUNT + DATE */}
-
-                            <div className="
-                                grid
-                                grid-cols-2
-                                gap-5
-                            ">
-
-                                <div>
-
-                                    <label className="
-                                        text-xs
-                                        text-gray-500
-                                    ">
-
-                                        Amount
-
-                                    </label>
-
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        placeholder="₹0.00"
-                                        className="
-                                            premiumInput
-                                            mt-2
-                                            w-full
-                                        "
-                                    />
-
-                                </div>
-
-
-                                <div>
-
-                                    <label className="
-                                        text-xs
-                                        text-gray-500
-                                    ">
-
-                                        Expense Date
-
-                                    </label>
-
-                                    <input
-                                        type="date"
-                                        className="
-                                            premiumInput
-                                            mt-2
-                                            w-full
-                                        "
-                                    />
-
-                                </div>
-
-                            </div>
-
-
-
-                            {/* PAID TO + PAYMENT */}
-
-                            <div className="
-                                grid
-                                grid-cols-2
-                                gap-5
-                            ">
-
-                                <div>
-
-                                    <label className="
-                                        text-xs
-                                        text-gray-500
-                                    ">
-
-                                        Paid To / Vendor
-
-                                    </label>
-
-                                    <input
-                                        placeholder="Vendor, employee or organization"
-                                        className="
-                                            premiumInput
-                                            mt-2
-                                            w-full
-                                        "
-                                    />
-
-                                </div>
-
-
-                                <div>
-
-                                    <label className="
-                                        text-xs
-                                        text-gray-500
-                                    ">
-
-                                        Payment Method
-
-                                    </label>
-
-                                    <select
-                                        className="
-                                            premiumInput
-                                            mt-2
-                                            w-full
-                                        "
-                                    >
-
-                                        <option>Select method</option>
-                                        <option>Cash</option>
-                                        <option>UPI</option>
-                                        <option>Card</option>
-                                        <option>Bank Transfer</option>
-                                        <option>Cheque</option>
-
-                                    </select>
-
-                                </div>
-
-                            </div>
-
-
-
-                            {/* RECURRING */}
-
-                            <div className="
-                                p-4
-                                rounded-xl
-                                border
-                                border-[#272727]
-                                bg-[#151515]
-                                flex
-                                items-center
-                                justify-between
-                            ">
-
-                                <div className="
-                                    flex
-                                    items-center
-                                    gap-3
-                                ">
-
-                                    <div className="
-                                        w-9
-                                        h-9
-                                        rounded-lg
-                                        bg-blue-500/10
-                                        text-blue-400
-                                        flex
-                                        items-center
-                                        justify-center
-                                    ">
-
-                                        <Repeat size={16}/>
-
-                                    </div>
-
-
-                                    <div>
-
-                                        <p className="
-                                            text-sm
-                                            font-semibold
-                                        ">
-
-                                            Recurring Expense
-
-                                        </p>
-
-                                        <p className="
-                                            text-xs
-                                            text-gray-600
-                                            mt-1
-                                        ">
-
-                                            Automatically track this expense every month.
-
-                                        </p>
-
-                                    </div>
-
-                                </div>
-
-
-                                <input
-                                    type="checkbox"
-                                    className="
-                                        w-5
-                                        h-5
-                                        accent-red-500
-                                    "
-                                />
-
-                            </div>
-
-
-
-                            {/* RECEIPT */}
-
-                            <div>
-
-                                <label className="
-                                    text-xs
-                                    text-gray-500
-                                ">
-
-                                    Receipt / Supporting Document
-
-                                </label>
-
-
-                                <div className="
-                                    mt-2
-                                    border
-                                    border-dashed
-                                    border-[#343434]
-                                    rounded-xl
-                                    p-5
-                                    bg-[#121212]
-                                    flex
-                                    flex-col
-                                    items-center
-                                    justify-center
-                                    text-center
-                                    hover:border-red-500/40
-                                    transition
-                                    cursor-pointer
-                                ">
-
-                                    <Upload
-                                        size={20}
-                                        className="text-gray-600"
-                                    />
-
-                                    <p className="
-                                        text-sm
-                                        text-gray-400
-                                        mt-2
-                                    ">
-
-                                        Upload receipt or invoice
-
-                                    </p>
-
-                                    <p className="
-                                        text-[11px]
-                                        text-gray-700
-                                        mt-1
-                                    ">
-
-                                        PDF, JPG or PNG • Max 10MB
-
-                                    </p>
-
-                                </div>
-
-                            </div>
-
-
-
-                            {/* NOTES */}
-
-                            <div>
-
-                                <label className="
-                                    text-xs
-                                    text-gray-500
-                                ">
-
-                                    Notes
-
-                                </label>
-
-                                <textarea
-                                    rows={3}
-                                    placeholder="Add any additional information..."
-                                    className="
-                                        premiumInput
-                                        mt-2
-                                        w-full
-                                        resize-none
-                                    "
-                                />
-
-                            </div>
-
-                        </div>
-
-
-
-                        {/* FOOTER */}
-
-                        <div className="
-                            px-7
-                            py-5
-                            border-t
-                            border-[#242424]
-                            flex
-                            justify-between
-                            items-center
-                        ">
-
-                            <button
-                                onClick={() =>
-                                    setExpenseModalOpen(false)
-                                }
-                                className="
-                                    text-gray-500
-                                    hover:text-white
-                                    text-sm
-                                "
-                            >
-
-                                Cancel
-
-                            </button>
-
-
-                            <button
-                                className="
-                                    h-11
-                                    px-7
-                                    rounded-xl
-                                    bg-gradient-to-r
-                                    from-red-700
-                                    to-red-500
+                                    tracking-tight
                                     text-white
-                                    font-bold
-                                    flex
-                                    items-center
-                                    gap-2
                                 "
                             >
+                                Record New Expense
+                            </h2>
 
-                                <Plus size={17}/>
-
-                                Record Expense
-
-                            </button>
+                            <p
+                                className="
+                                    mt-1
+                                    text-sm
+                                    text-gray-500
+                                "
+                            >
+                                Add a financial expense to your gym records.
+                            </p>
 
                         </div>
 
                     </div>
 
-                </>
 
-            )}
+                    {/* Close */}
 
+                    <button
+                        type="button"
+                        onClick={() => setExpenseModalOpen(false)}
+                        className="
+                            flex
+                            h-10
+                            w-10
+                            shrink-0
+                            items-center
+                            justify-center
+
+                            rounded-xl
+
+                            border
+                            border-white/[0.07]
+
+                            bg-white/[0.03]
+
+                            text-gray-500
+
+                            transition-all
+                            duration-200
+
+                            hover:border-red-500/30
+                            hover:bg-red-500/10
+                            hover:text-red-400
+                        "
+                    >
+
+                        <X size={18} />
+
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            {/* =====================================================
+                                FORM BODY
+            ====================================================== */}
+
+            <div
+                className="
+                    relative
+                    min-h-0
+                    flex-1
+                    overflow-y-auto
+
+                    px-7
+                    py-7
+
+                    scrollbar-thin
+                    scrollbar-track-transparent
+                    scrollbar-thumb-white/10
+                "
+            >
+
+                <div className="space-y-7">
+
+
+                    {/* =================================================
+                                BASIC INFORMATION
+                    ================================================== */}
+
+                    <div>
+
+                        <div className="mb-4 flex items-center gap-3">
+
+                            <div className="h-px flex-1 bg-white/[0.06]" />
+
+                            <span
+                                className="
+                                    text-[10px]
+                                    font-bold
+                                    uppercase
+                                    tracking-[3px]
+                                    text-gray-600
+                                "
+                            >
+                                Basic Information
+                            </span>
+
+                            <div className="h-px flex-1 bg-white/[0.06]" />
+
+                        </div>
+
+
+                        <div className="grid grid-cols-2 gap-5">
+
+
+                            {/* TITLE */}
+
+                            <div>
+
+                                <label
+                                    className="
+                                        mb-2
+                                        block
+                                        text-xs
+                                        font-medium
+                                        text-gray-400
+                                    "
+                                >
+                                    Expense Title
+                                    <span className="ml-1 text-red-400">*</span>
+                                </label>
+
+                                <div className="relative">
+
+                                    <FileText
+                                        size={16}
+                                        className="
+                                            pointer-events-none
+                                            absolute
+                                            left-4
+                                            top-1/2
+                                            -translate-y-1/2
+                                            text-gray-600
+                                        "
+                                    />
+
+                                    <input
+                                        name="title"
+                                        onChange={handleNewExpanseChange}
+                                        value={newExpanseData.title}
+                                        placeholder="Electricity Bill"
+                                        className="
+                                            h-12
+                                            w-full
+                                            rounded-xl
+                                            border
+                                            border-white/[0.08]
+                                            bg-white/[0.025]
+                                            pl-11
+                                            pr-4
+                                            text-sm
+                                            text-white
+                                            outline-none
+                                            placeholder:text-gray-700
+
+                                            transition-all
+
+                                            focus:border-red-500/40
+                                            focus:bg-white/[0.04]
+                                            focus:ring-4
+                                            focus:ring-red-500/[0.06]
+                                        "
+                                    />
+
+                                </div>
+
+                            </div>
+
+
+                            {/* CATEGORY */}
+
+                            <div>
+
+                                <label
+                                    className="
+                                        mb-2
+                                        block
+                                        text-xs
+                                        font-medium
+                                        text-gray-400
+                                    "
+                                >
+                                    Category
+                                    <span className="ml-1 text-red-400">*</span>
+                                </label>
+
+                                <div className="relative">
+
+                                    <Wallet
+                                        size={16}
+                                        className="
+                                            pointer-events-none
+                                            absolute
+                                            left-4
+                                            top-1/2
+                                            -translate-y-1/2
+                                            text-gray-600
+                                        "
+                                    />
+
+                                    <select
+                                        name="category"
+                                        onChange={handleNewExpanseChange}
+                                        value={newExpanseData.category}
+                                        className="
+                                            h-12
+                                            w-full
+                                            appearance-none
+                                            rounded-xl
+                                            border
+                                            border-white/[0.08]
+                                            bg-white/[0.025]
+                                            pl-11
+                                            pr-10
+                                            text-sm
+                                            text-white
+                                            outline-none
+
+                                            focus:border-red-500/40
+                                            focus:bg-white/[0.04]
+                                            focus:ring-4
+                                            focus:ring-red-500/[0.06]
+                                        "
+                                    >
+
+                                        <option value="">
+                                            Select category
+                                        </option>
+
+                                        <option value="utilities">
+                                            Utilities
+                                        </option>
+
+                                        <option value="maintenance">
+                                            Maintenance
+                                        </option>
+
+                                        <option value="employee">
+                                            Employee
+                                        </option>
+
+                                        <option value="rent">
+                                            Rent
+                                        </option>
+
+                                        <option value="equipment">
+                                            Equipment
+                                        </option>
+
+                                        <option value="supplies">
+                                            Supplies
+                                        </option>
+
+                                        <option value="marketing">
+                                            Marketing
+                                        </option>
+
+                                        <option value="other">
+                                            Other
+                                        </option>
+
+                                    </select>
+
+                                    <ChevronDown
+                                        size={16}
+                                        className="
+                                            pointer-events-none
+                                            absolute
+                                            right-4
+                                            top-1/2
+                                            -translate-y-1/2
+                                            text-gray-600
+                                        "
+                                    />
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    {/* =================================================
+                                PAYMENT INFORMATION
+                    ================================================== */}
+
+                    <div>
+
+                        <div className="mb-4 flex items-center gap-3">
+
+                            <div className="h-px flex-1 bg-white/[0.06]" />
+
+                            <span
+                                className="
+                                    text-[10px]
+                                    font-bold
+                                    uppercase
+                                    tracking-[3px]
+                                    text-gray-600
+                                "
+                            >
+                                Payment Details
+                            </span>
+
+                            <div className="h-px flex-1 bg-white/[0.06]" />
+
+                        </div>
+
+
+                        <div className="grid grid-cols-2 gap-5">
+
+
+                            {/* AMOUNT */}
+
+                            <div>
+
+                                <label
+                                    className="
+                                        mb-2
+                                        block
+                                        text-xs
+                                        font-medium
+                                        text-gray-400
+                                    "
+                                >
+                                    Amount
+                                    <span className="ml-1 text-red-400">*</span>
+                                </label>
+
+                                <div className="relative">
+
+                                    <span
+                                        className="
+                                            absolute
+                                            left-4
+                                            top-1/2
+                                            -translate-y-1/2
+                                            text-sm
+                                            font-bold
+                                            text-red-400
+                                        "
+                                    >
+                                        ₹
+                                    </span>
+
+                                    <input
+                                        type="number"
+                                        name="amount"
+                                        value={newExpanseData.amount}
+                                        onChange={handleNewExpanseChange}
+                                        min="0"
+                                        placeholder="0.00"
+                                        className="
+                                            h-12
+                                            w-full
+                                            rounded-xl
+                                            border
+                                            border-white/[0.08]
+                                            bg-white/[0.025]
+                                            pl-9
+                                            pr-4
+                                            text-sm
+                                            font-semibold
+                                            text-white
+                                            outline-none
+                                            placeholder:text-gray-700
+
+                                            focus:border-red-500/40
+                                            focus:bg-white/[0.04]
+                                            focus:ring-4
+                                            focus:ring-red-500/[0.06]
+                                        "
+                                    />
+
+                                </div>
+
+                            </div>
+
+
+                            {/* DATE */}
+
+                            <div>
+
+                                <label
+                                    className="
+                                        mb-2
+                                        block
+                                        text-xs
+                                        font-medium
+                                        text-gray-400
+                                    "
+                                >
+                                    Expense Date
+                                    <span className="ml-1 text-red-400">*</span>
+                                </label>
+
+                                <div className="relative">
+
+                                    <CalendarDays
+                                        size={16}
+                                        className="
+                                            pointer-events-none
+                                            absolute
+                                            left-4
+                                            top-1/2
+                                            -translate-y-1/2
+                                            text-gray-600
+                                        "
+                                    />
+
+                                    <input
+                                        type="date"
+                                        name="expenseDate"
+                                        onChange={handleNewExpanseChange}
+                                        value={newExpanseData.expenseDate}
+                                        className="
+                                            h-12
+                                            w-full
+                                            rounded-xl
+                                            border
+                                            border-white/[0.08]
+                                            bg-white/[0.025]
+                                            pl-11
+                                            pr-4
+                                            text-sm
+                                            text-white
+                                            outline-none
+
+                                            focus:border-red-500/40
+                                            focus:bg-white/[0.04]
+                                            focus:ring-4
+                                            focus:ring-red-500/[0.06]
+                                        "
+                                    />
+
+                                </div>
+
+                            </div>
+
+
+                            {/* VENDOR */}
+
+                            <div>
+
+                                <label
+                                    className="
+                                        mb-2
+                                        block
+                                        text-xs
+                                        font-medium
+                                        text-gray-400
+                                    "
+                                >
+                                    Paid To / Vendor
+                                    <span className="ml-1 text-red-400">*</span>
+                                </label>
+
+                                <div className="relative">
+
+                                    <Building2
+                                        size={16}
+                                        className="
+                                            pointer-events-none
+                                            absolute
+                                            left-4
+                                            top-1/2
+                                            -translate-y-1/2
+                                            text-gray-600
+                                        "
+                                    />
+
+                                    <input
+                                        placeholder="Vendor or organization"
+                                        name="paidTo"
+                                        value={newExpanseData.paidTo}
+                                        onChange={handleNewExpanseChange}
+                                        className="
+                                            h-12
+                                            w-full
+                                            rounded-xl
+                                            border
+                                            border-white/[0.08]
+                                            bg-white/[0.025]
+                                            pl-11
+                                            pr-4
+                                            text-sm
+                                            text-white
+                                            outline-none
+                                            placeholder:text-gray-700
+
+                                            focus:border-red-500/40
+                                            focus:bg-white/[0.04]
+                                            focus:ring-4
+                                            focus:ring-red-500/[0.06]
+                                        "
+                                    />
+
+                                </div>
+
+                            </div>
+
+
+                            {/* PAYMENT METHOD */}
+
+                            <div>
+
+                                <label
+                                    className="
+                                        mb-2
+                                        block
+                                        text-xs
+                                        font-medium
+                                        text-gray-400
+                                    "
+                                >
+                                    Payment Method
+                                    <span className="ml-1 text-red-400">*</span>
+                                </label>
+
+                                <div className="relative">
+
+                                    <CreditCard
+                                        size={16}
+                                        className="
+                                            pointer-events-none
+                                            absolute
+                                            left-4
+                                            top-1/2
+                                            -translate-y-1/2
+                                            text-gray-600
+                                        "
+                                    />
+
+                                    <select
+                                        name="paymentMethod"
+                                        onChange={handleNewExpanseChange}
+                                        value={newExpanseData.paymentMethod}
+                                        className="
+                                            h-12
+                                            w-full
+                                            appearance-none
+                                            rounded-xl
+                                            border
+                                            border-white/[0.08]
+                                            bg-white/[0.025]
+                                            pl-11
+                                            pr-10
+                                            text-sm
+                                            text-white
+                                            outline-none
+
+                                            focus:border-red-500/40
+                                            focus:bg-white/[0.04]
+                                            focus:ring-4
+                                            focus:ring-red-500/[0.06]
+                                        "
+                                    >
+
+                                        <option value="">
+                                            Select method
+                                        </option>
+
+                                        <option value="cash">
+                                            Cash
+                                        </option>
+
+                                        <option value="upi">
+                                            UPI
+                                        </option>
+
+                                        <option value="cheque">
+                                            Cheque
+                                        </option>
+
+                                        <option value="bank_transfer">
+                                            Bank Transfer
+                                        </option>
+
+                                    </select>
+
+                                    <ChevronDown
+                                        size={16}
+                                        className="
+                                            pointer-events-none
+                                            absolute
+                                            right-4
+                                            top-1/2
+                                            -translate-y-1/2
+                                            text-gray-600
+                                        "
+                                    />
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    {/* =================================================
+                                RECURRING
+                    ================================================== */}
+
+                    <div
+                        className="
+                            flex
+                            items-center
+                            justify-between
+
+                            rounded-2xl
+
+                            border
+                            border-blue-500/10
+
+                            bg-blue-500/[0.04]
+
+                            px-5
+                            py-4
+                        "
+                    >
+
+                        <div className="flex items-center gap-4">
+
+                            <div
+                                className="
+                                    flex
+                                    h-10
+                                    w-10
+                                    items-center
+                                    justify-center
+
+                                    rounded-xl
+
+                                    bg-blue-500/10
+
+                                    text-blue-400
+                                "
+                            >
+
+                                <Repeat size={18} />
+
+                            </div>
+
+
+                            <div>
+
+                                <p
+                                    className="
+                                        text-sm
+                                        font-semibold
+                                        text-white
+                                    "
+                                >
+                                    Recurring Expense
+                                </p>
+
+                                <p
+                                    className="
+                                        mt-1
+                                        text-xs
+                                        text-gray-600
+                                    "
+                                >
+                                    Track this expense automatically every month.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+
+                        <label
+                            className="
+                                relative
+                                inline-flex
+                                cursor-pointer
+                                items-center
+                            "
+                        >
+
+                            <input
+                                type="checkbox"
+                                name="isRecurring"
+                                checked={newExpanseData.isRecurring}
+                                onChange={handleNewExpanseChange}
+                                className="peer sr-only"
+                            />
+
+                            <div
+                                className="
+                                    h-6
+                                    w-11
+                                    rounded-full
+                                    bg-white/10
+                                    transition-all
+
+                                    peer-checked:bg-red-500
+
+                                    after:absolute
+                                    after:left-[3px]
+                                    after:top-[3px]
+                                    after:h-4
+                                    after:w-4
+                                    after:rounded-full
+                                    after:bg-white
+                                    after:transition-all
+
+                                    peer-checked:after:translate-x-5
+                                "
+                            />
+
+                        </label>
+
+                    </div>
+
+
+                    {/* =================================================
+                                NOTES
+                    ================================================== */}
+
+                    <div>
+
+                        <label
+                            className="
+                                mb-2
+                                block
+                                text-xs
+                                font-medium
+                                text-gray-400
+                            "
+                        >
+                            Notes
+                        </label>
+
+                        <textarea
+                            rows={4}
+                            name="notes"
+                            onChange={handleNewExpanseChange}
+                            value={newExpanseData.notes}
+                            placeholder="Add additional information about this expense..."
+                            className="
+                                w-full
+                                resize-none
+                                rounded-2xl
+
+                                border
+                                border-white/[0.08]
+
+                                bg-white/[0.025]
+
+                                px-5
+                                py-4
+
+                                text-sm
+                                leading-6
+                                text-white
+
+                                outline-none
+
+                                placeholder:text-gray-700
+
+                                transition-all
+
+                                focus:border-red-500/40
+                                focus:bg-white/[0.04]
+                                focus:ring-4
+                                focus:ring-red-500/[0.06]
+                            "
+                        />
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            {/* =====================================================
+                                FOOTER
+            ====================================================== */}
+
+            <div
+                className="
+                    relative
+                    shrink-0
+
+                    flex
+                    items-center
+                    justify-between
+
+                    border-t
+                    border-white/[0.07]
+
+                    bg-[#0b0b0b]
+
+                    px-7
+                    py-5
+                "
+            >
+
+                <div className="flex items-center gap-2">
+
+                    <ShieldCheck
+                        size={15}
+                        className="text-emerald-500"
+                    />
+
+                    <span
+                        className="
+                            text-xs
+                            text-gray-600
+                        "
+                    >
+                        Expense will be securely recorded.
+                    </span>
+
+                </div>
+
+
+                <div className="flex items-center gap-3">
+
+                    <button
+                        type="button"
+                        onClick={() => setExpenseModalOpen(false)}
+                        className="
+                            h-11
+                            rounded-xl
+
+                            border
+                            border-white/[0.08]
+
+                            bg-white/[0.03]
+
+                            px-5
+
+                            text-sm
+                            font-medium
+                            text-gray-400
+
+                            transition-all
+
+                            hover:bg-white/[0.07]
+                            hover:text-white
+                        "
+                    >
+                        Cancel
+                    </button>
+
+
+                    <button
+                        type="button"
+                        onClick={createNewExpanse}
+                        className="
+                            group
+
+                            flex
+                            h-11
+                            items-center
+                            gap-2
+
+                            rounded-xl
+
+                            bg-gradient-to-r
+                            from-red-600
+                            to-red-500
+
+                            px-6
+
+                            text-sm
+                            font-bold
+                            text-white
+
+                            shadow-[0_12px_30px_rgba(239,68,68,.18)]
+
+                            transition-all
+                            duration-300
+
+                            hover:-translate-y-0.5
+                            hover:shadow-[0_16px_35px_rgba(239,68,68,.28)]
+
+                            active:translate-y-0
+                        "
+                    >
+
+                        <Plus
+                            size={17}
+                            className="
+                                transition-transform
+                                duration-300
+                                group-hover:rotate-90
+                            "
+                        />
+
+                        Record Expense
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </>
+
+)}
         </div>
 
     );
