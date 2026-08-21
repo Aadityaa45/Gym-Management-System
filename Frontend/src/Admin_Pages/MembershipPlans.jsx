@@ -161,7 +161,7 @@ const MemberShipPlans = () => {
 
             <button
 
-                onClick={() => navigate("/admin/add-plan")}
+                onClick={() => navigate("/admin/add-plans")}
 
                 className="group flex h-16 items-center gap-4 rounded-2xl
                 bg-gradient-to-r from-red-600 to-red-500
@@ -208,6 +208,8 @@ const MemberShipPlans = () => {
                 <PlanCard
 
                     {...plan}
+
+                    totalMembers={plan.totalMembers}
 
                     accentColor={accentColor}
 

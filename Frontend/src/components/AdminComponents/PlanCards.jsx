@@ -521,7 +521,7 @@ const PlanCard = ({
 
           {/* Revenue */}
 
-          <div
+          {/* <div
             className="
               rounded-2xl
               border
@@ -554,7 +554,7 @@ const PlanCard = ({
 
             </p>
 
-          </div>
+          </div> */}
 
         </div>
                 {/* Bottom CTA */}

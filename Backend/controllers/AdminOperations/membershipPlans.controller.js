@@ -4,6 +4,7 @@ import { appAssert } from "../../utils/errorAssertion.utils.js"
 import { AppError } from "../../utils/errorAssertion.utils.js"
 import emailService from "../../services/email.service.js"
 import GymDetails from "../../models/gym.modals.js"
+import mongoose from "mongoose"
 //here we have to implement all the functionality regarding the membership plans including all the CRUD operations and fetching searching
 
 
@@ -116,22 +117,171 @@ export const addNewMembershipPlan = async (req,res) =>{
 
 
 //--------------------------------------------------------------------FETCH ALL PLANS CONTROLLERS----------------------------------------------------
-export const fetchPlans = async (req,res) =>{
-    //since we will always have a very few amount of plans so we can directly give it to the frontend it will not slowdown our app
-    try {
-        const gymId = req.gym.gymId
-        const plans = await membershipPlanModel.find({
-            gym:gymId
-        })
+// export const fetchPlans = async (req,res) =>{
+//     //since we will always have a very few amount of plans so we can directly give it to the frontend it will not slowdown our app
+//     try {
+//         const gymId = req.gym.gymId
+//         const plans = await membershipPlanModel.find({
+//             gym:gymId
+//         })
 
-        return res.json({success:true,plans})
+//         return res.json({success:true,plans})
+//     } catch (error) {
+//         if (error instanceof AppError) {
+//             return res.json({success: false, message:error.message});
+//         }
+//         return res.json({success: false, message:"An error occured while loging in!"});
+//     }
+// }
+// ==========================================================
+// FETCH ALL MEMBERSHIP PLANS
+// ==========================================================
+
+export const fetchPlans = async (req, res) => {
+
+    try {
+
+        const gymId = req.gym?.gymId;
+
+        appAssert(
+            gymId,
+            "Gym information is required"
+        );
+
+        const plans = await membershipPlanModel.aggregate([
+
+            // ==================================================
+            // 1. GET GYM PLANS
+            // ==================================================
+
+            {
+                $match: {
+                    gym: new mongoose.Types.ObjectId(gymId)
+                }
+            },
+
+            // ==================================================
+            // 2. COUNT MEMBERS ENROLLED IN EACH PLAN
+            // ==================================================
+
+            {
+                $lookup: {
+                    from: "members",
+                    let: {
+                        planId: "$_id",
+                        gymId: "$gym"
+                    },
+
+                    pipeline: [
+
+                        {
+                            $match: {
+                                $expr: {
+                                    $and: [
+
+                                        {
+                                            $eq: [
+                                                "$gym",
+                                                "$$gymId"
+                                            ]
+                                        },
+
+                                        {
+                                            $eq: [
+                                                "$membership.plan",
+                                                "$$planId"
+                                            ]
+                                        }
+
+                                    ]
+                                }
+                            }
+                        },
+
+                        {
+                            $count: "totalMembers"
+                        }
+
+                    ],
+
+                    as: "memberStats"
+                }
+            },
+
+            // ==================================================
+            // 3. CONVERT LOOKUP RESULT INTO NUMBER
+            // ==================================================
+
+            {
+                $addFields: {
+
+                    totalMembers: {
+                        $ifNull: [
+                            {
+                                $arrayElemAt: [
+                                    "$memberStats.totalMembers",
+                                    0
+                                ]
+                            },
+                            0
+                        ]
+                    }
+
+                }
+            },
+
+            // ==================================================
+            // 4. REMOVE INTERNAL LOOKUP ARRAY
+            // ==================================================
+
+            {
+                $project: {
+                    memberStats: 0
+                }
+            }
+
+        ]);
+
+        return res.status(200).json({
+
+            success: true,
+
+            plans
+
+        });
+
     } catch (error) {
+
+        console.error(
+            "FETCH MEMBERSHIP PLANS ERROR:",
+            error
+        );
+
         if (error instanceof AppError) {
-            return res.json({success: false, message:error.message});
+
+            return res.status(
+                error.statusCode || 400
+            ).json({
+
+                success: false,
+
+                message: error.message
+
+            });
+
         }
-        return res.json({success: false, message:"An error occured while loging in!"});
+
+        return res.status(500).json({
+
+            success: false,
+
+            message: "Unable to fetch membership plans"
+
+        });
+
     }
-}
+
+};
 
 //---------------------------------------------------------------------UPDATE MEMBERSHIP PLAN CONTROLLER-------------------------------------------------------------------
 
