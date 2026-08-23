@@ -1,252 +1,476 @@
-// import React from "react";
-
-// const ProductSales = ({
-//     data = []
-// }) => {
-
-//     return (
-
-//         <div
-//             className="
-//                 bg-[#0B1220]
-//                 border border-slate-800/80
-//                 rounded-2xl
-//                 p-5
-//             "
-//         >
-
-//             <div className="flex justify-between mb-5">
-
-//                 <h2 className="text-white font-semibold">
-//                     Product Sales
-//                 </h2>
-
-//                 <select
-//                     className="
-//                         bg-[#111827]
-//                         border border-slate-700
-//                         text-xs
-//                         text-slate-400
-//                         rounded-lg
-//                         px-2
-//                         py-1
-//                     "
-//                 >
-
-//                     <option>This Week</option>
-//                     <option>This Month</option>
-
-//                 </select>
-
-//             </div>
-
-
-//             <div className="space-y-3">
-
-//                 {data.map((item, index) => (
-
-//                     <div
-//                         key={index}
-//                         className="
-//                             flex
-//                             items-center
-//                             gap-3
-//                             py-2
-//                             border-b
-//                             border-slate-800
-//                         "
-//                     >
-
-//                         <div
-//                             className="
-//                                 w-9
-//                                 h-9
-//                                 rounded-full
-//                                 bg-red-500
-//                             "
-//                         />
-
-
-//                         <div className="flex-1">
-
-//                             <p className="text-xs text-white">
-//                                 {item.product}
-//                             </p>
-
-//                             <p className="text-[10px] text-slate-500">
-//                                 Qty: {item.quantity}
-//                             </p>
-
-//                         </div>
-
-
-//                         <p className="text-xs text-green-400 font-semibold">
-
-//                             ₹{Number(
-//                                 item.amount
-//                             ).toLocaleString("en-IN")}
-
-//                         </p>
-
-//                     </div>
-
-//                 ))}
-
-//             </div>
-
-//         </div>
-
-//     );
-
-// };
-
-// export default ProductSales;
 import React from "react";
+
 import {
+    ShoppingBag,
+    TrendingUp,
     Package,
-    AlertTriangle,
-    Boxes,
+    ChevronRight,
 } from "lucide-react";
 
-const ProductSales = ({ data = [] }) => {
+
+const ProductSales = ({
+    data = [],
+}) => {
+
+    /* ------------------------------------------------------------
+       TOTAL UNITS
+    ------------------------------------------------------------ */
+
+    const totalUnits = data.reduce(
+        (sum, item) =>
+            sum + Number(item.quantity || 0),
+        0
+    );
+
 
     return (
+
         <div
             className="
-                bg-[#0B1220]
-                border border-slate-800
+                relative
+                overflow-hidden
+                bg-[#0B0B0B]
+                border
+                border-[#272020]
                 rounded-2xl
                 p-5
+                min-h-[390px]
+                transition-all
+                duration-300
+                hover:border-[#3A2525]
             "
         >
 
-            <div className="
-                flex
-                items-center
-                justify-between
-                mb-5
-            ">
+            {/* =====================================================
+                BACKGROUND GLOW
+            ===================================================== */}
+
+            <div
+                className="
+                    absolute
+                    -top-20
+                    -right-20
+                    w-44
+                    h-44
+                    rounded-full
+                    bg-red-600
+                    blur-[100px]
+                    opacity-[0.04]
+                    pointer-events-none
+                "
+            />
+
+
+            {/* =====================================================
+                TOP ACCENT
+            ===================================================== */}
+
+            <div
+                className="
+                    absolute
+                    top-0
+                    left-8
+                    right-8
+                    h-[1px]
+                    bg-red-500/25
+                "
+            />
+
+
+            {/* =====================================================
+                HEADER
+            ===================================================== */}
+
+            <div
+                className="
+                    relative
+                    z-10
+                    flex
+                    items-start
+                    justify-between
+                    mb-5
+                "
+            >
 
                 <div>
 
-                    <p className="
-                        text-[10px]
-                        uppercase
-                        tracking-wider
-                        text-slate-500
-                    ">
-                        Inventory
-                    </p>
+                    <div
+                        className="
+                            flex
+                            items-center
+                            gap-2
+                            mb-1
+                        "
+                    >
 
-                    <h2 className="
-                        text-white
-                        font-semibold
-                        mt-1
-                    ">
-                        Product Stock
+                        <ShoppingBag
+                            size={13}
+                            className="text-red-500"
+                        />
+
+                        <p
+                            className="
+                                text-[10px]
+                                uppercase
+                                tracking-[0.18em]
+                                font-semibold
+                                text-red-500
+                            "
+                        >
+                            Products
+                        </p>
+
+                    </div>
+
+
+                    <h2
+                        className="
+                            text-lg
+                            font-bold
+                            text-white
+                            tracking-tight
+                        "
+                    >
+                        Product Sales
                     </h2>
+
+
+                    <p
+                        className="
+                            text-[11px]
+                            text-slate-600
+                            mt-1
+                        "
+                    >
+                        Best performing products
+                    </p>
 
                 </div>
 
-                <Package
-                    size={18}
-                    className="text-cyan-400"
-                />
+
+                {/* TOTAL */}
+
+                <div
+                    className="
+                        px-3
+                        py-2
+                        rounded-xl
+                        bg-[#141010]
+                        border
+                        border-[#302020]
+                        text-right
+                    "
+                >
+
+                    <p
+                        className="
+                            text-sm
+                            font-bold
+                            text-white
+                        "
+                    >
+                        {totalUnits}
+                    </p>
+
+                    <p
+                        className="
+                            text-[9px]
+                            uppercase
+                            tracking-wider
+                            text-slate-600
+                        "
+                    >
+                        Units
+                    </p>
+
+                </div>
 
             </div>
 
 
-            <div className="space-y-3">
+            {/* =====================================================
+                PRODUCT LIST
+            ===================================================== */}
 
-                {data.slice(0, 5).map(
-                    (item, index) => (
+            {data.length > 0 ? (
 
-                        <div
-                            key={
-                                item._id ||
-                                index
-                            }
-                            className="
-                                flex
-                                items-center
-                                gap-3
-                                py-3
-                                border-b
-                                border-slate-800/70
-                            "
-                        >
+                <div
+                    className="
+                        relative
+                        z-10
+                        space-y-1
+                    "
+                >
 
-                            <div className="
-                                w-9
-                                h-9
-                                rounded-xl
-                                bg-cyan-500/10
-                                text-cyan-400
-                                flex
-                                items-center
-                                justify-center
-                            ">
-                                <Boxes size={16} />
+                    {data.slice(0, 5).map(
+                        (item, index) => (
+
+                            <div
+                                key={
+                                    item._id ||
+                                    item.product ||
+                                    index
+                                }
+                                className="
+                                    group
+                                    flex
+                                    items-center
+                                    gap-3
+                                    px-2
+                                    py-3
+                                    rounded-xl
+                                    border
+                                    border-transparent
+                                    hover:bg-[#110D0D]
+                                    hover:border-[#302020]
+                                    transition-all
+                                    duration-200
+                                "
+                            >
+
+                                {/* =================================================
+                                    RANK
+                                ================================================= */}
+
+                                <div
+                                    className="
+                                        w-5
+                                        shrink-0
+                                        text-center
+                                    "
+                                >
+
+                                    <span
+                                        className={`
+                                            text-[10px]
+                                            font-bold
+                                            ${
+                                                index === 0
+                                                    ? "text-red-400"
+                                                    : "text-slate-600"
+                                            }
+                                        `}
+                                    >
+                                        {String(
+                                            index + 1
+                                        ).padStart(2, "0")}
+                                    </span>
+
+                                </div>
+
+
+                                {/* =================================================
+                                    PRODUCT ICON
+                                ================================================= */}
+
+                                <div
+                                    className={`
+                                        w-10
+                                        h-10
+                                        shrink-0
+                                        rounded-xl
+                                        flex
+                                        items-center
+                                        justify-center
+                                        border
+                                        ${
+                                            index === 0
+                                                ? "bg-red-500/10 border-red-500/20"
+                                                : "bg-[#141010] border-[#302020]"
+                                        }
+                                    `}
+                                >
+
+                                    <Package
+                                        size={16}
+                                        className={
+                                            index === 0
+                                                ? "text-red-400"
+                                                : "text-slate-500"
+                                        }
+                                    />
+
+                                </div>
+
+
+                                {/* =================================================
+                                    PRODUCT INFO
+                                ================================================= */}
+
+                                <div
+                                    className="
+                                        flex-1
+                                        min-w-0
+                                    "
+                                >
+
+                                    <p
+                                        className="
+                                            text-xs
+                                            font-semibold
+                                            text-slate-200
+                                            truncate
+                                        "
+                                    >
+                                        {item.product ||
+                                            "Unknown Product"}
+                                    </p>
+
+
+                                    <div
+                                        className="
+                                            flex
+                                            items-center
+                                            gap-1.5
+                                            mt-1
+                                        "
+                                    >
+
+                                        <TrendingUp
+                                            size={10}
+                                            className="text-green-500"
+                                        />
+
+                                        <span
+                                            className="
+                                                text-[10px]
+                                                text-slate-600
+                                            "
+                                        >
+                                            {Number(
+                                                item.quantity || 0
+                                            )}{" "}
+                                            units sold
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+
+                                {/* =================================================
+                                    REVENUE
+                                ================================================= */}
+
+                                <div
+                                    className="
+                                        text-right
+                                        shrink-0
+                                    "
+                                >
+
+                                    <p
+                                        className="
+                                            text-xs
+                                            font-bold
+                                            text-slate-200
+                                        "
+                                    >
+                                        ₹
+                                        {Number(
+                                            item.amount || 0
+                                        ).toLocaleString(
+                                            "en-IN"
+                                        )}
+                                    </p>
+
+
+                                    <p
+                                        className="
+                                            text-[9px]
+                                            text-slate-700
+                                            mt-1
+                                        "
+                                    >
+                                        Revenue
+                                    </p>
+
+                                </div>
+
+
+                                {/* =================================================
+                                    ARROW
+                                ================================================= */}
+
+                                <ChevronRight
+                                    size={13}
+                                    className="
+                                        text-slate-700
+                                        group-hover:text-red-500
+                                        transition-colors
+                                    "
+                                />
+
                             </div>
 
+                        )
+                    )}
 
-                            <div className="flex-1 min-w-0">
+                </div>
 
-                                <p className="
-                                    text-xs
-                                    text-white
-                                    truncate
-                                ">
-                                    {item.name}
-                                </p>
+            ) : (
 
-                                <p className="
-                                    text-[10px]
-                                    text-slate-600
-                                    mt-1
-                                ">
-                                    {item.category}
-                                </p>
+                /* =================================================
+                   EMPTY STATE
+                ================================================= */
 
-                            </div>
+                <div
+                    className="
+                        relative
+                        z-10
+                        h-[260px]
+                        flex
+                        flex-col
+                        items-center
+                        justify-center
+                        text-center
+                    "
+                >
 
+                    <div
+                        className="
+                            w-12
+                            h-12
+                            rounded-2xl
+                            bg-[#141010]
+                            border
+                            border-[#302020]
+                            flex
+                            items-center
+                            justify-center
+                            mb-3
+                        "
+                    >
 
-                            <div className="text-right">
+                        <ShoppingBag
+                            size={20}
+                            className="text-slate-600"
+                        />
 
-                                <p className="
-                                    text-xs
-                                    font-semibold
-                                    text-white
-                                ">
-                                    {item.quantity}
-                                </p>
-
-                                <p className="
-                                    text-[10px]
-                                    text-slate-600
-                                ">
-                                    units
-                                </p>
-
-                            </div>
-
-                        </div>
-
-                    )
-                )}
-
-            </div>
+                    </div>
 
 
-            {data.length === 0 && (
+                    <p
+                        className="
+                            text-sm
+                            font-semibold
+                            text-slate-400
+                        "
+                    >
+                        No product sales
+                    </p>
 
-                <div className="
-                    py-12
-                    text-center
-                    text-slate-600
-                    text-sm
-                ">
-                    No products available
+
+                    <p
+                        className="
+                            text-[10px]
+                            text-slate-700
+                            mt-1
+                        "
+                    >
+                        Product sales will appear here.
+                    </p>
+
                 </div>
 
             )}
@@ -254,5 +478,6 @@ const ProductSales = ({ data = [] }) => {
         </div>
     );
 };
+
 
 export default ProductSales;

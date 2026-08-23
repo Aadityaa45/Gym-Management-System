@@ -117,10 +117,10 @@ const Registration = () => {
 
             const paid = total - remaining;
 
-            const planStartDate = new Date();
+            // const planStartDate = new Date();
 
-            const planEndDate = new Date(planStartDate);
-            planEndDate.setDate(planEndDate.getDate() + selectedPlanData.durationInDays);
+            // const planEndDate = new Date(planStartDate);
+            // planEndDate.setDate(planEndDate.getDate() + selectedPlanData.durationInDays);
 
             if (remaining > total) {
                 return toast.error("Remaining payment cannot exceed total amount");
@@ -129,7 +129,7 @@ const Registration = () => {
             fullname: `${registrationData.firstName} ${registrationData.lastName}`,
             email: registrationData.email.trim(),
             phone: registrationData.phoneNumber,
-            joiningdate: new Date(),
+            // joiningdate: new Date(),
             address: registrationData.address.trim(),
             dob: registrationData.dateOfBirth,
             registeredBy: registrationData.registrar,
@@ -143,8 +143,8 @@ const Registration = () => {
 
             membership: {
                 plan: registrationData.selectedPlan,
-                planStartDate,
-                planEndDate
+                // planStartDate,
+                // planEndDate
             }
         };
 

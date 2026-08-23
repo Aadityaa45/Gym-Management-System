@@ -13,6 +13,7 @@ import InvoiceService from "../../services/invoice.service.js";
 import { generateInvoice } from "./invoice.controller.admin.js";
 import genrateBillInvoiceNumber from "../../utils/generateBillNumber.js";
 import mongoose from "mongoose";
+import getNextDayInIndia from "../../utils/getNextDayDate.utils.js";
 
 //this controllers will be having all the operations related to members including resgistrations to filterations 
 
@@ -45,7 +46,6 @@ export const registerMember = async (req,res)=>{
             fullname,
             email,
             phone,
-            joiningdate,
             address,
             dob,
             fee,
@@ -68,10 +68,10 @@ export const registerMember = async (req,res)=>{
         appAssert(/^[0-9]{10}$/.test(phone),"Invalid Phone Number")
 
         //Joining Date Validation
-        appAssert(joiningdate,"Joining Date is Required!")
-        appAssert(typeof joiningdate === "string","Joining Date Must be a String!")
-        appAssert(!isNaN(Date.parse(joiningdate)),"Invalid Joining Date")
-        // appAssert(!isNaN(new Date(joiningdate)),"Invalid Joining Date")
+        // appAssert(joiningdate,"Joining Date is Required!")
+        // appAssert(typeof joiningdate === "string","Joining Date Must be a String!")
+        // appAssert(!isNaN(Date.parse(joiningdate)),"Invalid Joining Date")
+        // // appAssert(!isNaN(new Date(joiningdate)),"Invalid Joining Date")
             
                 
         appAssert(address,"Address is Required!")
@@ -88,6 +88,8 @@ export const registerMember = async (req,res)=>{
         appAssert(typeof membership === "object","Membership Must be an Object!")
         
         appAssert(registeredBy,"Registered By is Required!")
+
+        const joiningDate = getNextDayInIndia()
 
 
         //------------------------------------ENTERED PLAN VALIDATION--------------------------------------------
@@ -126,7 +128,10 @@ export const registerMember = async (req,res)=>{
             gym:gymId,
             email:email,
             purpose:"registration",
-            registrationData:req.body
+            registrationData:{
+                ...req.body,
+                joiningdate: joiningDate
+            }
         })
         
     }catch(error){
@@ -604,16 +609,16 @@ export const verifyRegistrationOtp = async (req, res) => {
         try {
 
             await EmailService.sendWelcomeEmail(
-
                 registrationData.fullname,
-
                 email,
-
-                password,
-
-                "Fitness Beast Gym & MMA"
-
-            );
+                "Fitness Beast Gym & MMA",
+                {
+                    plan: membershipPlan,
+                    planStartDate: planStartDate,
+                    planEndDate: planEndDate
+                },
+            finalRegistrationData.fee
+        );
 
         } catch (emailError) {
 

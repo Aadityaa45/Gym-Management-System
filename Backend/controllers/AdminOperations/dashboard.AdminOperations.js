@@ -895,28 +895,152 @@ export const getAdminDashboard = async (req, res) => {
 
 
         // ============================================================
-        // 14. PRODUCT INFORMATION
-        // ============================================================
+// 14. PRODUCT SALES
+// ============================================================
+// Dashboard par stock nahi,
+// actual sold products dikhayenge.
+//
+// Data invoice se aa raha hai because:
+// billAndInvoice.items[] = actual purchased products.
+//
+// Only paid / partially_paid invoices are considered sales.
+// Cancelled / pending invoices are excluded.
+//
+// Current week = Monday -> Sunday
+// ============================================================
 
-        const productStock =
-            await productModel.find({
+const startOfWeek = new Date(now);
 
-                gym: gymObjectId
+const day = startOfWeek.getDay();
 
-            })
+// JS:
+// Sunday = 0
+// Monday = 1
+// ...
+//
+// Convert to Monday-based week
+const daysSinceMonday =
+    day === 0 ? 6 : day - 1;
 
-            .sort({
-                quantity: 1
-            })
+startOfWeek.setDate(
+    startOfWeek.getDate() - daysSinceMonday
+);
 
-            .limit(10)
+startOfWeek.setHours(
+    0,
+    0,
+    0,
+    0
+);
 
-            .select(
-                "name quantity price category status"
-            )
 
-            .lean();
+const endOfWeek = new Date(
+    startOfWeek
+);
 
+endOfWeek.setDate(
+    endOfWeek.getDate() + 7
+);
+
+endOfWeek.setMilliseconds(
+    endOfWeek.getMilliseconds() - 1
+);
+
+
+// ============================================================
+// PRODUCT SALES AGGREGATION
+// ============================================================
+
+const productSales =
+    await billAndInvoiceModel.aggregate([
+
+        // --------------------------------------------------------
+        // 1. GET THIS WEEK'S VALID SALES
+        // --------------------------------------------------------
+
+        {
+            $match: {
+
+                gym: gymObjectId,
+
+                invoiceDate: {
+                    $gte: startOfWeek,
+                    $lte: endOfWeek
+                },
+
+                status: {
+                    $in: [
+                        "paid",
+                        "partially_paid"
+                    ]
+                },
+
+                category: "product"
+
+            }
+        },
+
+
+        // --------------------------------------------------------
+        // 2. BREAK ITEMS ARRAY
+        // --------------------------------------------------------
+
+        {
+            $unwind: "$items"
+        },
+
+
+        // --------------------------------------------------------
+        // 3. GROUP BY PRODUCT
+        // --------------------------------------------------------
+
+        {
+            $group: {
+
+                _id: "$items.product",
+
+                product:
+                    {
+                        $first:
+                            "$items.productName"
+                    },
+
+                quantity:
+                    {
+                        $sum:
+                            "$items.quantity"
+                    },
+
+                amount:
+                    {
+                        $sum:
+                            "$items.total"
+                    }
+
+            }
+        },
+
+
+        // --------------------------------------------------------
+        // 4. SORT MOST SOLD FIRST
+        // --------------------------------------------------------
+
+        {
+            $sort: {
+                quantity: -1
+            }
+        },
+
+
+        // --------------------------------------------------------
+        // 5. SHOW TOP 5 PRODUCTS
+        // --------------------------------------------------------
+
+        {
+            $limit: 5
+        }
+
+    ]);
 
         // ============================================================
         // 15. NET CASH FLOW
@@ -1048,7 +1172,7 @@ export const getAdminDashboard = async (req, res) => {
                         outOfStockProducts,
 
                     items:
-                        productStock
+                        productSales
 
                 }
 

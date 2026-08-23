@@ -1,291 +1,3 @@
-// // import React from "react";
-// // import {
-// //   ResponsiveContainer,
-// //   AreaChart,
-// //   Area,
-// //   XAxis,
-// //   YAxis,
-// //   Tooltip,
-// // } from "recharts";
-
-
-// // const RevenueChart = ({total_revenue,percentage,revenueData}) => {
-// //   return (
-// //     <div className="bg-[#0F172A] border border-slate-800 rounded-2xl p-6 w-full">
-      
-// //       {/* Header */}
-// //       <div className="flex items-center justify-between mb-6">
-// //         <h2 className="text-white text-lg font-semibold">
-// //           Revenue Overview
-// //         </h2>
-
-// //         <select className="bg-[#111827] border border-slate-700 text-slate-300 rounded-lg px-3 py-2 text-sm outline-none">
-// //           <option>This Month</option>
-// //           <option>Last Month</option>
-// //           <option>This Year</option>
-// //         </select>
-// //       </div>
-
-// //       {/* Revenue */}
-// //       <div className="mb-5">
-// //         <h1 className="text-white text-4xl font-bold">
-// //           {total_revenue}
-// //         </h1>
-
-// //         <p className="text-green-500 text-sm mt-2">
-// //           {`↑ ${percentage}% from last month`}
-// //         </p>
-// //       </div>
-
-// //       {/* Chart */}
-// //       <div className="h-[180px]">
-// //         <ResponsiveContainer width="100%" height="100%">
-// //           <AreaChart data={revenueData}>
-            
-// //             <defs>
-// //               <linearGradient
-// //                 id="revenueGradient"
-// //                 x1="0"
-// //                 y1="0"
-// //                 x2="0"
-// //                 y2="1"
-// //               >
-// //                 <stop
-// //                   offset="5%"
-// //                   stopColor="#8B5CF6"
-// //                   stopOpacity={0.5}
-// //                 />
-// //                 <stop
-// //                   offset="95%"
-// //                   stopColor="#8B5CF6"
-// //                   stopOpacity={0}
-// //                 />
-// //               </linearGradient>
-// //             </defs>
-
-// //             <XAxis
-// //               dataKey="date"
-// //               tick={{ fill: "#94A3B8" }}
-// //               axisLine={false}
-// //               tickLine={false}
-// //             />
-
-// //             <YAxis
-// //               tick={{ fill: "#94A3B8" }}
-// //               axisLine={false}
-// //               tickLine={false}
-// //               tickFormatter={(value) => `₹${value / 1000}K`}
-// //             />
-
-// //             <Tooltip
-// //               contentStyle={{
-// //                 backgroundColor: "#1E293B",
-// //                 border: "1px solid #334155",
-// //                 borderRadius: "10px",
-// //                 color: "#fff",
-// //               }}
-// //               formatter={(value) => [
-// //                 `₹${value.toLocaleString()}`,
-// //                 "Revenue",
-// //               ]}
-// //             />
-
-// //             <Area
-// //               type="monotone"
-// //               dataKey="revenue"
-// //               stroke="#8B5CF6"
-// //               strokeWidth={4}
-// //               fill="url(#revenueGradient)"
-// //               activeDot={{
-// //                 r: 8,
-// //                 fill: "#8B5CF6",
-// //                 stroke: "#fff",
-// //                 strokeWidth: 3,
-// //               }}
-// //             />
-// //           </AreaChart>
-// //         </ResponsiveContainer>
-// //       </div>
-// //     </div>
-// //   );
-// // };
-
-// // export default RevenueChart;
-// import React from "react";
-
-// import {
-//     ResponsiveContainer,
-//     AreaChart,
-//     Area,
-//     XAxis,
-//     YAxis,
-//     Tooltip
-// } from "recharts";
-
-// const RevenueChart = ({
-//     total_revenue,
-//     percentage,
-//     revenueData = []
-// }) => {
-
-//     return (
-
-//         <div
-//             className="
-//                 bg-[#0B1220]
-//                 border border-slate-800/80
-//                 rounded-2xl
-//                 p-6
-//                 w-full
-//                 shadow-xl
-//             "
-//         >
-
-//             <div className="flex items-center justify-between mb-5">
-
-//                 <div>
-
-//                     <p className="text-sm text-slate-400">
-//                         Revenue Overview
-//                     </p>
-
-//                     <h2 className="text-3xl font-bold text-white mt-2">
-//                         {total_revenue}
-//                     </h2>
-
-//                     <p className="text-green-400 text-sm mt-2">
-//                         ↑ {percentage}% from last month
-//                     </p>
-
-//                 </div>
-
-
-//                 <select
-//                     className="
-//                         bg-[#111827]
-//                         border border-slate-700
-//                         text-slate-300
-//                         rounded-lg
-//                         px-3
-//                         py-2
-//                         text-sm
-//                         outline-none
-//                         focus:border-purple-500
-//                     "
-//                 >
-
-//                     <option>This Month</option>
-//                     <option>Last Month</option>
-//                     <option>This Year</option>
-
-//                 </select>
-
-//             </div>
-
-
-//             <div className="h-[230px]">
-
-//                 <ResponsiveContainer
-//                     width="100%"
-//                     height="100%"
-//                 >
-
-//                     <AreaChart
-//                         data={revenueData}
-//                     >
-
-//                         <defs>
-
-//                             <linearGradient
-//                                 id="revenueGradient"
-//                                 x1="0"
-//                                 y1="0"
-//                                 x2="0"
-//                                 y2="1"
-//                             >
-
-//                                 <stop
-//                                     offset="5%"
-//                                     stopColor="#8B5CF6"
-//                                     stopOpacity={0.45}
-//                                 />
-
-//                                 <stop
-//                                     offset="95%"
-//                                     stopColor="#8B5CF6"
-//                                     stopOpacity={0}
-//                                 />
-
-//                             </linearGradient>
-
-//                         </defs>
-
-
-//                         <XAxis
-//                             dataKey="date"
-//                             tick={{
-//                                 fill: "#64748B",
-//                                 fontSize: 12
-//                             }}
-//                             axisLine={false}
-//                             tickLine={false}
-//                         />
-
-
-//                         <YAxis
-//                             tick={{
-//                                 fill: "#64748B",
-//                                 fontSize: 12
-//                             }}
-//                             axisLine={false}
-//                             tickLine={false}
-//                             tickFormatter={(value) =>
-//                                 `₹${value / 1000}K`
-//                             }
-//                         />
-
-
-//                         <Tooltip
-//                             contentStyle={{
-//                                 backgroundColor: "#0F172A",
-//                                 border: "1px solid #334155",
-//                                 borderRadius: "10px",
-//                                 color: "#fff"
-//                             }}
-//                             formatter={(value) => [
-//                                 `₹${Number(
-//                                     value
-//                                 ).toLocaleString("en-IN")}`,
-//                                 "Revenue"
-//                             ]}
-//                         />
-
-
-//                         <Area
-//                             type="monotone"
-//                             dataKey="revenue"
-//                             stroke="#8B5CF6"
-//                             strokeWidth={3}
-//                             fill="url(#revenueGradient)"
-//                             activeDot={{
-//                                 r: 6
-//                             }}
-//                         />
-
-//                     </AreaChart>
-
-//                 </ResponsiveContainer>
-
-//             </div>
-
-//         </div>
-
-//     );
-
-// };
-
-// export default RevenueChart;
-
 import React from "react";
 
 import {
@@ -304,88 +16,155 @@ const RevenueChart = ({
     revenueData = [],
 }) => {
 
+    const isPositive = percentage >= 0;
+
     return (
         <div
             className="
                 relative
                 overflow-hidden
-                bg-[#0B1220]
-                border border-slate-800
-                rounded-2xl
-                p-6
                 w-full
-                min-h-[390px]
+                min-h-[350px]
+                rounded-2xl
+                border
+                border-white/[0.07]
+                bg-[#0D0B0B]
+                p-5
+                md:p-6
+                transition-all
+                duration-300
+                hover:border-red-500/20
             "
         >
 
-            {/* Background glow */}
+            {/* =====================================================
+                SUBTLE RED GLOW
+            ===================================================== */}
 
             <div
                 className="
-                    absolute
-                    -right-20
-                    -top-20
-                    w-56
-                    h-56
-                    rounded-full
-                    bg-purple-600
-                    blur-[100px]
-                    opacity-[0.05]
                     pointer-events-none
+                    absolute
+                    -top-24
+                    -right-24
+                    h-52
+                    w-52
+                    rounded-full
+                    bg-red-600
+                    opacity-[0.045]
+                    blur-[90px]
                 "
             />
 
 
-            {/* HEADER */}
+            {/* =====================================================
+                TOP ACCENT
+            ===================================================== */}
 
-            <div className="
-                relative
-                z-10
-                flex
-                items-start
-                justify-between
-                mb-5
-            ">
+            <div
+                className="
+                    absolute
+                    top-0
+                    left-8
+                    right-8
+                    h-px
+                    bg-red-600/30
+                "
+            />
+
+
+            {/* =====================================================
+                HEADER
+            ===================================================== */}
+
+            <div
+                className="
+                    relative
+                    z-10
+                    mb-4
+                    flex
+                    flex-col
+                    gap-4
+                    sm:flex-row
+                    sm:items-start
+                    sm:justify-between
+                "
+            >
+
+                {/* LEFT */}
 
                 <div>
 
-                    <p className="
-                        text-xs
-                        uppercase
-                        tracking-wider
-                        text-slate-500
-                    ">
-                        Revenue Overview
-                    </p>
+                    <div className="flex items-center gap-2">
 
-                    <h2 className="
-                        text-3xl
-                        font-bold
-                        text-white
-                        mt-2
-                    ">
+                        <span
+                            className="
+                                h-1.5
+                                w-1.5
+                                rounded-full
+                                bg-red-500
+                                shadow-[0_0_8px_rgba(239,68,68,0.7)]
+                            "
+                        />
+
+                        <p
+                            className="
+                                text-[10px]
+                                font-semibold
+                                uppercase
+                                tracking-[0.2em]
+                                text-red-500/80
+                            "
+                        >
+                            Revenue Overview
+                        </p>
+
+                    </div>
+
+
+                    <h2
+                        className="
+                            mt-1.5
+                            text-2xl
+                            md:text-[28px]
+                            font-bold
+                            tracking-tight
+                            text-white
+                        "
+                    >
                         {total_revenue}
                     </h2>
 
-                    <div className="
-                        flex
-                        items-center
-                        gap-2
-                        mt-2
-                    ">
 
-                        <span className="
-                            text-green-400
-                            text-xs
-                            font-semibold
-                        ">
-                            ↑ {percentage}%
+                    <div
+                        className="
+                            mt-1.5
+                            flex
+                            items-center
+                            gap-2
+                        "
+                    >
+
+                        <span
+                            className={`
+                                text-xs
+                                font-semibold
+                                ${
+                                    isPositive
+                                        ? "text-emerald-400"
+                                        : "text-red-400"
+                                }
+                            `}
+                        >
+                            {isPositive ? "↑" : "↓"} {Math.abs(percentage)}%
                         </span>
 
-                        <span className="
-                            text-slate-600
-                            text-xs
-                        ">
+                        <span
+                            className="
+                                text-[11px]
+                                text-slate-500
+                            "
+                        >
                             from last month
                         </span>
 
@@ -394,36 +173,50 @@ const RevenueChart = ({
                 </div>
 
 
+                {/* PERIOD SELECTOR */}
+
                 <select
+                    defaultValue="This Year"
                     className="
-                        bg-[#0F172A]
+                        h-9
+                        min-w-[110px]
+                        rounded-lg
                         border
-                        border-slate-700
-                        text-slate-300
-                        rounded-xl
+                        border-white/[0.08]
+                        bg-[#121010]
                         px-3
-                        py-2
                         text-xs
+                        font-medium
+                        text-slate-300
                         outline-none
+                        transition
                         cursor-pointer
-                        hover:border-slate-600
+                        hover:border-red-500/30
+                        focus:border-red-500/40
                     "
                 >
+
                     <option>This Year</option>
                     <option>This Month</option>
                     <option>Last Year</option>
+
                 </select>
 
             </div>
 
 
-            {/* CHART */}
+            {/* =====================================================
+                CHART
+            ===================================================== */}
 
-            <div className="
-                relative
-                z-10
-                h-[260px]
-            ">
+            <div
+                className="
+                    relative
+                    z-10
+                    h-[230px]
+                    w-full
+                "
+            >
 
                 {revenueData.length > 0 ? (
 
@@ -435,17 +228,21 @@ const RevenueChart = ({
                         <AreaChart
                             data={revenueData}
                             margin={{
-                                top: 10,
-                                right: 10,
-                                left: -15,
+                                top: 8,
+                                right: 8,
+                                left: -18,
                                 bottom: 0,
                             }}
                         >
 
+                            {/* =================================================
+                                GRADIENT
+                            ================================================= */}
+
                             <defs>
 
                                 <linearGradient
-                                    id="revenueGradientPremium"
+                                    id="fitnessBeastRevenueGradient"
                                     x1="0"
                                     y1="0"
                                     x2="0"
@@ -454,13 +251,19 @@ const RevenueChart = ({
 
                                     <stop
                                         offset="0%"
-                                        stopColor="#8B5CF6"
-                                        stopOpacity={0.40}
+                                        stopColor="#EF4444"
+                                        stopOpacity={0.22}
+                                    />
+
+                                    <stop
+                                        offset="70%"
+                                        stopColor="#EF4444"
+                                        stopOpacity={0.06}
                                     />
 
                                     <stop
                                         offset="100%"
-                                        stopColor="#8B5CF6"
+                                        stopColor="#EF4444"
                                         stopOpacity={0}
                                     />
 
@@ -469,68 +272,95 @@ const RevenueChart = ({
                             </defs>
 
 
+                            {/* =================================================
+                                GRID
+                            ================================================= */}
+
                             <CartesianGrid
-                                stroke="#1E293B"
-                                strokeDasharray="3 5"
                                 vertical={false}
+                                stroke="rgba(255,255,255,0.055)"
+                                strokeDasharray="2 5"
                             />
 
+
+                            {/* =================================================
+                                X AXIS
+                            ================================================= */}
 
                             <XAxis
                                 dataKey="date"
-                                tick={{
-                                    fill: "#64748B",
-                                    fontSize: 11,
-                                }}
                                 axisLine={false}
                                 tickLine={false}
+                                tick={{
+                                    fill: "#64748B",
+                                    fontSize: 10,
+                                }}
+                                dy={8}
                             />
 
+
+                            {/* =================================================
+                                Y AXIS
+                            ================================================= */}
 
                             <YAxis
-                                tick={{
-                                    fill: "#64748B",
-                                    fontSize: 11,
-                                }}
                                 axisLine={false}
                                 tickLine={false}
-                                tickFormatter={(value) =>
-                                    value >= 1000
-                                        ? `₹${(
-                                              value / 1000
-                                          ).toFixed(0)}K`
-                                        : `₹${value}`
-                                }
+                                width={48}
+                                tick={{
+                                    fill: "#64748B",
+                                    fontSize: 10,
+                                }}
+                                tickFormatter={(value) => {
+
+                                    if (value >= 100000) {
+                                        return `₹${(
+                                            value / 100000
+                                        ).toFixed(1)}L`;
+                                    }
+
+                                    if (value >= 1000) {
+                                        return `₹${(
+                                            value / 1000
+                                        ).toFixed(0)}K`;
+                                    }
+
+                                    return `₹${value}`;
+
+                                }}
                             />
 
+
+                            {/* =================================================
+                                TOOLTIP
+                            ================================================= */}
 
                             <Tooltip
                                 cursor={{
-                                    stroke: "#475569",
-                                    strokeDasharray:
-                                        "4 4",
+                                    stroke: "rgba(239,68,68,0.25)",
+                                    strokeDasharray: "4 4",
                                 }}
                                 contentStyle={{
-                                    backgroundColor:
-                                        "#0F172A",
+                                    background: "#141111",
                                     border:
-                                        "1px solid #334155",
-                                    borderRadius:
-                                        "12px",
-                                    color:
-                                        "#fff",
+                                        "1px solid rgba(239,68,68,0.25)",
+                                    borderRadius: "10px",
+                                    padding: "9px 12px",
                                     boxShadow:
-                                        "0 10px 30px rgba(0,0,0,0.4)",
+                                        "0 12px 30px rgba(0,0,0,0.45)",
                                 }}
                                 labelStyle={{
                                     color: "#94A3B8",
-                                    marginBottom:
-                                        "4px",
+                                    fontSize: "11px",
+                                    marginBottom: "4px",
+                                }}
+                                itemStyle={{
+                                    color: "#F87171",
+                                    fontSize: "12px",
+                                    fontWeight: 600,
                                 }}
                                 formatter={(value) => [
-                                    `₹${Number(
-                                        value
-                                    ).toLocaleString(
+                                    `₹${Number(value).toLocaleString(
                                         "en-IN"
                                     )}`,
                                     "Revenue",
@@ -538,18 +368,23 @@ const RevenueChart = ({
                             />
 
 
+                            {/* =================================================
+                                AREA
+                            ================================================= */}
+
                             <Area
                                 type="monotone"
                                 dataKey="revenue"
-                                stroke="#8B5CF6"
-                                strokeWidth={3}
-                                fill="url(#revenueGradientPremium)"
+                                stroke="#EF4444"
+                                strokeWidth={2.5}
+                                fill="url(#fitnessBeastRevenueGradient)"
                                 activeDot={{
-                                    r: 6,
-                                    fill: "#8B5CF6",
-                                    stroke: "#fff",
+                                    r: 5,
+                                    fill: "#EF4444",
+                                    stroke: "#1A1010",
                                     strokeWidth: 2,
                                 }}
+                                animationDuration={800}
                             />
 
                         </AreaChart>
@@ -558,15 +393,49 @@ const RevenueChart = ({
 
                 ) : (
 
-                    <div className="
-                        h-full
-                        flex
-                        items-center
-                        justify-center
-                        text-slate-600
-                        text-sm
-                    ">
-                        No revenue data available
+                    <div
+                        className="
+                            h-full
+                            flex
+                            flex-col
+                            items-center
+                            justify-center
+                            gap-2
+                        "
+                    >
+
+                        <div
+                            className="
+                                flex
+                                h-10
+                                w-10
+                                items-center
+                                justify-center
+                                rounded-xl
+                                border
+                                border-white/[0.06]
+                                bg-white/[0.025]
+                            "
+                        >
+                            <span
+                                className="
+                                    h-2
+                                    w-2
+                                    rounded-full
+                                    bg-slate-600
+                                "
+                            />
+                        </div>
+
+                        <p
+                            className="
+                                text-xs
+                                text-slate-500
+                            "
+                        >
+                            No revenue data available
+                        </p>
+
                     </div>
 
                 )}
