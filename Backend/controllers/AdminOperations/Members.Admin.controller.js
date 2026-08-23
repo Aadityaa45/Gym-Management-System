@@ -130,7 +130,7 @@ export const registerMember = async (req,res)=>{
             purpose:"registration",
             registrationData:{
                 ...req.body,
-                joiningdate: joiningDate
+                joiningDate
             }
         })
         
@@ -385,7 +385,7 @@ export const verifyRegistrationOtp = async (req, res) => {
 
         const planStartDate =
             new Date(
-                registrationData.joiningdate
+                registrationData.joiningDate
             );
 
 
