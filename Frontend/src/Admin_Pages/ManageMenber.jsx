@@ -386,10 +386,10 @@ const handleUpgradeMembership = async () => {
     // ==========================================================
 
     const daysRemaining =
-        member.membershipDaysRemaining;
+        member.membership?.daysRemaining ?? null;
 
     const membershipStatus =
-        member.membershipStatus;
+        member.membership?.status ?? "not_assigned";
 
     const isExpired =
         membershipStatus === "expired";
@@ -909,7 +909,7 @@ const totalPayableNow =
                         icon={<CalendarDays size={19} />}
                         label="Expiry Date"
                         value={formatDate(
-                            member.membershipExpiryDate
+                            member.membership?.planEndDate
                         )}
                         subtext={
                             isExpired
